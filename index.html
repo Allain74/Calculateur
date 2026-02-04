@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcul des tarifs barres et rondelles selon tarifs Varinor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Georgia:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-family: 'Georgia', serif;
+            font-weight: 700;
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: #fafafa;
+        }
+        select:focus, input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+            outline: none;
+            background: #ffffff;
+        }
+        .field-group {
+            display: none;
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 25px;
+            border: 1px solid #e0e0e0;
+        }
+        .field-group.active {
+            display: block;
+        }
+        .field-group h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 25px;
+        }
+        button:hover {
+            background: #34495e;
+            transform: translateY(-1px);
+        }
+        #resultat {
+            margin-top: 40px;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        #resultat strong {
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: 600;
+            color: #555;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calcul des tarifs barres et rondelles selon tarifs Varinor</h1>
+        <form id="calculateur">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="typePiece">Type de pièce :</label>
+                    <select id="typePiece" required>
+                        <option value="">Sélectionnez</option>
+                        <option value="barresRect">Barres rectangulaires</option>
+                        <option value="barresRondes">Barres rondes</option>
+                        <option value="rondelles">Rondelles</option>
+                        <option value="plaques">Plaques</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alliage">Alliage :</label>
+                    <select id="alliage" required>
+                        <option value="">Sélectionnez</option>
+                        <option value="OR 2N / 218">OR 2N / 218</option>
+                        <option value="OR 3N / 318">OR 3N / 318</option>
+                        <option value="OR 4N / 418">OR 4N / 418</option>
+                        <option value="OR ROSE / 500">OR ROSE / 500</option>
+                        <option value="OR GRIS 0125 / 5125">OR GRIS 0125 / 5125</option>
+                        <option value="OR GRIS 0150 / 5150">OR GRIS 0150 / 5150</option>
+                        <option value="OR GRIS 0210 / 5210">OR GRIS 0210 / 5210</option>
+                        <option value="PLATINE / PT801">PLATINE / PT801</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="fields">
+                <!-- Champs dynamiques -->
+                <div class="field-group" id="barresRectFields">
+                    <h3>Dimensions des barres rectangulaires</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="longRect">Longueur (mm) :</label>
+                            <input type="number" id="longRect" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="largRect">Largeur (mm) :</label>
+                            <input type="number" id="largRect" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="hautRect">Hauteur (mm) :</label>
+                            <input type="number" id="hautRect" step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group" id="barresRondesFields">
+                    <h3>Dimensions des barres rondes</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="longRond">Longueur (mm) :</label>
+                            <input type="number" id="longRond" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="diamRond">Diamètre (mm) :</label>
+                            <input type="number" id="diamRond" step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group" id="rondellesFields">
+                    <h3>Dimensions des rondelles</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="typeRondelle">Type :</label>
+                            <select id="typeRondelle">
+                                <option value="pleine">Pleine</option>
+                                <option value="ouverte">Ouverte</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="diamExtRond">Diamètre extérieur (mm) :</label>
+                            <input type="number" id="diamExtRond" step="0.01" min="0">
+                        </div>
+                        <div class="form-group" id="diamIntGroup" style="display: none;">
+                            <label for="diamIntRond">Diamètre intérieur (mm) :</label>
+                            <input type="number" id="diamIntRond" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="epRond">Épaisseur (mm) :</label>
+                            <input type="number" id="epRond" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="qteRond">Quantité (unités) :</label>
+                            <input type="number" id="qteRond" step="1" min="1" value="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group" id="plaquesFields">
+                    <h3>Dimensions des plaques</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="typePlaque">Type :</label>
+                            <select id="typePlaque">
+                                <option value="pleine">Pleine</option>
+                                <option value="ouverte">Ouverte</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="longPlaque">Longueur (mm) :</label>
+                            <input type="number" id="longPlaque" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="largPlaque">Largeur (mm) :</label>
+                            <input type="number" id="largPlaque" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" id="trouPlaqueGroup" style="display: none;">
+                            <label for="diamTrouPlaque">Diamètre du trou (mm) :</label>
+                            <input type="number" id="diamTrouPlaque" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="epPlaque">Épaisseur (mm) :</label>
+                            <input type="number" id="epPlaque" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="qtePlaque">Quantité (unités) :</label>
+                            <input type="number" id="qtePlaque" step="1" min="1" value="1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit">Calculer le prix</button>
+        </form>
+        <div id="resultat"></div>
+    </div>
+
+    <script>
+        // Densités précises (g/cm³)
+        const densites = {
+            'OR 2N / 218': 15.42,
+            'OR 3N / 318': 15.42,
+            'OR 4N / 418': 15.28,
+            'OR ROSE / 500': 15.11,
+            'OR GRIS 0125 / 5125': 15.92,
+            'OR GRIS 0150 / 5150': 15.76,
+            'OR GRIS 0210 / 5210': 16.61,
+            'PLATINE / PT801': 20.4
+        };
+
+        // Tarifs (inchangés)
+        const tarifs = {
+            barresRect: {
+                miseAlliage: {
+                    'OR 2N / 218': { kg: 339, min: 0 },
+                    'OR 3N / 318': { kg: 339, min: 0 },
+                    'OR 4N / 418': { kg: 339, min: 0 },
+                    'OR ROSE / 500': { kg: 342, min: 0 },
+                    'OR GRIS 0125 / 5125': { kg: 465, min: 0 },
+                    'OR GRIS 0150 / 5150': { kg: 530, min: 0 },
+                    'OR GRIS 0210 / 5210': { kg: 530, min: 0 },
+                    'PLATINE / PT801': { kg: 2368, min: 500 }
+                },
+                facon: {
+                    'OR 2N / 218': { mm: 0.2, min: 100 },
+                    'OR 3N / 318': { mm: 0.2, min: 100 },
+                    'OR 4N / 418': { mm: 0.2, min: 100 },
+                    'OR ROSE / 500': { mm: 0.2, min: 100 },
+                    'OR GRIS 0125 / 5125': { mm: 0.2, min: 150 },
+                    'OR GRIS 0150 / 5150': { mm: 0.2, min: 150 },
+                    'OR GRIS 0210 / 5210': { mm: 0.2, min: 150 },
+                    'PLATINE / PT801': { mm: 0.8, min: 400 }
+                },
+                fmo: {
+                    'OR 2N / 218': 0,
+                    'OR 3N / 318': 0,
+                    'OR 4N / 418': 0,
+                    'OR ROSE / 500': 0,
+                    'OR GRIS 0125 / 5125': 0,
+                    'OR GRIS 0150 / 5150': 0,
+                    'OR GRIS 0210 / 5210': 0,
+                    'PLATINE / PT801': 150
+                }
+            },
+            barresRondes: {
+                miseAlliage: {
+                    'OR 2N / 218': { kg: 339, min: 0 },
+                    'OR 3N / 318': { kg: 339, min: 0 },
+                    'OR 4N / 418': { kg: 339, min: 0 },
+                    'OR ROSE / 500': { kg: 342, min: 0 },
+                    'OR GRIS 0125 / 5125': { kg: 465, min: 0 },
+                    'OR GRIS 0150 / 5150': { kg: 530, min: 0 },
+                    'OR GRIS 0210 / 5210': { kg: 530, min: 0 },
+                    'PLATINE / PT801': { kg: 2368, min: 500 }
+                },
+                facon: {
+                    platine: {
+                        '<3': 150,
+                        '>3': 100
+                    },
+                    autres: {
+                        '<1': 130,
+                        '1.05-3': 110,
+                        '3.05-5': 50,
+                        '>5': 25
+                    }
+                },
+                fmo: {
+                    'OR 2N / 218': 100,
+                    'OR 3N / 318': 100,
+                    'OR 4N / 418': 100,
+                    'OR ROSE / 500': 100,
+                    'OR GRIS 0125 / 5125': 100,
+                    'OR GRIS 0150 / 5150': 100,
+                    'OR GRIS 0210 / 5210': 100,
+                    'PLATINE / PT801': 200
+                }
+            },
+            rondellesPlaques: {
+                miseAlliage: {
+                    'OR 2N / 218': { kg: 328, min: 150 },
+                    'OR 3N / 318': { kg: 328, min: 150 },
+                    'OR 4N / 418': { kg: 328, min: 150 },
+                    'OR ROSE / 500': { kg: 331, min: 150 },
+                    'OR GRIS 0125 / 5125': { kg: 422, min: 250 },
+                    'OR GRIS 0150 / 5150': { kg: 476, min: 250 },
+                    'OR GRIS 0210 / 5210': { kg: 476, min: 250 },
+                    'PLATINE / PT801': { kg: 2422, min: 500 }
+                },
+                facon: {
+                    'OR 2N / 218': { piece: 1.2, min: 0 },
+                    'OR 3N / 318': { piece: 1.2, min: 0 },
+                    'OR 4N / 418': { piece: 1.2, min: 0 },
+                    'OR ROSE / 500': { piece: 1.2, min: 0 },
+                    'OR GRIS 0125 / 5125': { piece: 1.2, min: 0 },
+                    'OR GRIS 0150 / 5150': { piece: 1.2, min: 0 },
+                    'OR GRIS 0210 / 5210': { piece: 1.2, min: 0 },
+                    'PLATINE / PT801': { piece: 1.2, min: 200 }
+                }
+            }
+        };
+
+        function updateFields() {
+            const type = document.getElementById('typePiece').value;
+            document.querySelectorAll('.field-group').forEach(group => group.classList.remove('active'));
+            if (type) {
+                document.getElementById(type + 'Fields').classList.add('active');
+            }
+        }
+
+        document.getElementById('typePiece').addEventListener('change', updateFields);
+
+        document.getElementById('typeRondelle').addEventListener('change', function() {
+            document.getElementById('diamIntGroup').style.display = this.value === 'ouverte' ? 'block' : 'none';
+        });
+
+        document.getElementById('typePlaque').addEventListener('change', function() {
+            document.getElementById('trouPlaqueGroup').style.display = this.value === 'ouverte' ? 'block' : 'none';
+        });
+
+        document.getElementById('calculateur').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const type = document.getElementById('typePiece').value;
+            const alliage = document.getElementById('alliage').value;
+            if (!type || !alliage) {
+                alert('Veuillez sélectionner le type de pièce et l\'alliage.');
+                return;
+            }
+
+            let poidsKg = 0;
+            let volumeCm3 = 0;
+            let fraisMiseAlliage = 0;
+            let fraisFacon = 0;
+            let fraisFMO = 0;
+
+            const densite = densites[alliage];
+
+            if (type === 'barresRect') {
+                const long = parseFloat(document.getElementById('longRect').value) || 0;
+                const larg = parseFloat(document.getElementById('largRect').value) || 0;
+                const haut = parseFloat(document.getElementById('hautRect').value) || 0;
+                if (long <= 0 || larg <= 0 || haut <= 0) {
+                    alert('Veuillez entrer des dimensions valides.');
+                    return;
+                }
+                volumeCm3 = (long / 10) * (larg / 10) * (haut / 10);
+                poidsKg = (volumeCm3 * densite) / 1000;
+                fraisMiseAlliage = Math.max(poidsKg * tarifs.barresRect.miseAlliage[alliage].kg, tarifs.barresRect.miseAlliage[alliage].min);
+                fraisFacon = Math.max(long * tarifs.barresRect.facon[alliage].mm, tarifs.barresRect.facon[alliage].min);
+                fraisFMO = tarifs.barresRect.fmo[alliage];
+            } else if (type === 'barresRondes') {
+                const long = parseFloat(document.getElementById('longRond').value) || 0;
+                const diam = parseFloat(document.getElementById('diamRond').value) || 0;
+                if (long <= 0 || diam <= 0) {
+                    alert('Veuillez entrer des dimensions valides.');
+                    return;
+                }
+                const rayonCm = diam / 20;
+                const sectionCm2 = Math.PI * rayonCm * rayonCm;
+                volumeCm3 = sectionCm2 * (long / 10);
+                poidsKg = (volumeCm3 * densite) / 1000;
+                fraisMiseAlliage = Math.max(poidsKg * tarifs.barresRondes.miseAlliage[alliage].kg, tarifs.barresRondes.miseAlliage[alliage].min);
+                let faconKg = 0;
+                if (alliage === 'PLATINE / PT801') {
+                    faconKg = diam < 3 ? 150 : 100;
+                } else {
+                    if (diam < 1) faconKg = 130;
+                    else if (diam <= 3) faconKg = 110;
+                    else if (diam <= 5) faconKg = 50;
+                    else faconKg = 25;
+                }
+                fraisFacon = poidsKg * faconKg;
+                fraisFMO = tarifs.barresRondes.fmo[alliage];
+            } else if (type === 'rondelles') {
+                const typeR = document.getElementById('typeRondelle').value;
+                const diamExt = parseFloat(document.getElementById('diamExtRond').value) || 0;
+                const diamInt = typeR === 'ouverte' ? parseFloat(document.getElementById('diamIntRond').value) || 0 : 0;
+                const ep = parseFloat(document.getElementById('epRond').value) || 0;
+                const qte = parseFloat(document.getElementById('qteRond').value) || 1;
+                if (diamExt <= 0 || ep <= 0 || (typeR === 'ouverte' && diamInt >= diamExt)) {
+                    alert('Veuillez entrer des dimensions valides.');
+                    return;
+                }
+                const rayonExtCm = diamExt / 20;
+                const rayonIntCm = diamInt / 20;
+                volumeCm3 = Math.PI * (rayonExtCm * rayonExtCm - rayonIntCm * rayonIntCm) * (ep / 10);
+                poidsKg = (volumeCm3 * densite * qte) / 1000;
+                fraisMiseAlliage = Math.max(poidsKg * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                fraisFacon = Math.max(qte * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                fraisFMO = 0;
+            } else if (type === 'plaques') {
+                const typeP = document.getElementById('typePlaque').value;
+                const long = parseFloat(document.getElementById('longPlaque').value) || 0;
+                const larg = parseFloat(document.getElementById('largPlaque').value) || 0;
+                const diamTrou = typeP === 'ouverte' ? parseFloat(document.getElementById('diamTrouPlaque').value) || 0 : 0;
+                const ep = parseFloat(document.getElementById('epPlaque').value) || 0;
+                const qte = parseFloat(document.getElementById('qtePlaque').value) || 1;
+                if (long <= 0 || larg <= 0 || ep <= 0) {
+                    alert('Veuillez entrer des dimensions valides.');
+                    return;
+                }
+                volumeCm3 = (long / 10) * (larg / 10) * (ep / 10);
+                if (typeP === 'ouverte' && diamTrou > 0) {
+                    const rayonTrouCm = diamTrou / 20;
+                    volumeCm3 -= Math.PI * rayonTrouCm * rayonTrouCm * (ep / 10);
+                }
+                poidsKg = (volumeCm3 * densite * qte) / 1000;
+                fraisMiseAlliage = Math.max(poidsKg * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                fraisFacon = Math.max(qte * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                fraisFMO = 0;
+            }
+
+            // Fonction pour calculer le prix pour un facteur
+            function calculatePrice(factor) {
+                let poidsKgCalc = 0;
+                let fraisMiseAlliageCalc = 0;
+                let fraisFaconCalc = 0;
+                let fraisFMOCalc = 0;
+
+                if (type === 'barresRect') {
+                    const long = parseFloat(document.getElementById('longRect').value) || 0;
+                    const larg = parseFloat(document.getElementById('largRect').value) || 0;
+                    const haut = parseFloat(document.getElementById('hautRect').value) || 0;
+                    const volumeCm3Calc = (long * factor / 10) * (larg / 10) * (haut / 10);
+                    poidsKgCalc = (volumeCm3Calc * densite) / 1000;
+                    fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.barresRect.miseAlliage[alliage].kg, tarifs.barresRect.miseAlliage[alliage].min);
+                    fraisFaconCalc = Math.max((long * factor) * tarifs.barresRect.facon[alliage].mm, tarifs.barresRect.facon[alliage].min);
+                    fraisFMOCalc = tarifs.barresRect.fmo[alliage];
+                } else if (type === 'barresRondes') {
+                    const long = parseFloat(document.getElementById('longRond').value) || 0;
+                    const diam = parseFloat(document.getElementById('diamRond').value) || 0;
+                    const rayonCm = diam / 20;
+                    const sectionCm2 = Math.PI * rayonCm * rayonCm;
+                    const volumeCm3Calc = sectionCm2 * (long * factor / 10);
+                    poidsKgCalc = (volumeCm3Calc * densite) / 1000;
+                    fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.barresRondes.miseAlliage[alliage].kg, tarifs.barresRondes.miseAlliage[alliage].min);
+                    let faconKg = 0;
+                    if (alliage === 'PLATINE / PT801') {
+                        faconKg = diam < 3 ? 150 : 100;
+                    } else {
+                        if (diam < 1) faconKg = 130;
+                        else if (diam <= 3) faconKg = 110;
+                        else if (diam <= 5) faconKg = 50;
+                        else faconKg = 25;
+                    }
+                    fraisFaconCalc = poidsKgCalc * faconKg;
+                    fraisFMOCalc = tarifs.barresRondes.fmo[alliage];
+                } else if (type === 'rondelles') {
+                    const typeR = document.getElementById('typeRondelle').value;
+                    const diamExt = parseFloat(document.getElementById('diamExtRond').value) || 0;
+                    const diamInt = typeR === 'ouverte' ? parseFloat(document.getElementById('diamIntRond').value) || 0 : 0;
+                    const ep = parseFloat(document.getElementById('epRond').value) || 0;
+                    const qte = parseFloat(document.getElementById('qteRond').value) || 1;
+                    const rayonExtCm = diamExt / 20;
+                    const rayonIntCm = diamInt / 20;
+                    const volumeCm3Calc = Math.PI * (rayonExtCm * rayonExtCm - rayonIntCm * rayonIntCm) * (ep / 10);
+                    poidsKgCalc = (volumeCm3Calc * densite * qte * factor) / 1000;
+                    fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                    fraisFaconCalc = Math.max((qte * factor) * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                    fraisFMOCalc = 0;
+                } else if (type === 'plaques') {
+                    const typeP = document.getElementById('typePlaque').value;
+                    const long = parseFloat(document.getElementById('longPlaque').value) || 0;
+                    const larg = parseFloat(document.getElementById('largPlaque').value) || 0;
+                    const diamTrou = typeP === 'ouverte' ? parseFloat(document.getElementById('diamTrouPlaque').value) || 0 : 0;
+                    const ep = parseFloat(document.getElementById('epPlaque').value) || 0;
+                    const qte = parseFloat(document.getElementById('qtePlaque').value) || 1;
+                    let volumeCm3Calc = (long / 10) * (larg / 10) * (ep / 10);
+                    if (typeP === 'ouverte' && diamTrou > 0) {
+                        const rayonTrouCm = diamTrou / 20;
+                        volumeCm3Calc -= Math.PI * rayonTrouCm * rayonTrouCm * (ep / 10);
+                    }
+                    poidsKgCalc = (volumeCm3Calc * densite * qte * factor) / 1000;
+                    fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                    fraisFaconCalc = Math.max((qte * factor) * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                    fraisFMOCalc = 0;
+                }
+
+                const prixTotalCalc = fraisMiseAlliageCalc + fraisFaconCalc + fraisFMOCalc;
+                return { poids: poidsKgCalc, prix: prixTotalCalc };
+            }
+
+            // Générer le tableau
+            const facteurs = [1, 3, 5, 10, 15, 20, 25, 30, 50, 100];
+            let tableHTML = `
+                <strong>Tableau des prix :</strong><br>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <tr style="background-color: #f4e4bc;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">${type.includes('barres') ? 'Longueur (mm)' : 'Quantité'}</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Poids (kg)</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Prix Total (CHF)</th>
+                    </tr>
+            `;
+            facteurs.forEach(factor => {
+                const calc = calculatePrice(factor);
+                tableHTML += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${factor}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${calc.poids.toFixed(4)}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${calc.prix.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            tableHTML += `</table>`;
+
+            document.getElementById('resultat').innerHTML = tableHTML;
+            document.getElementById('resultat').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
