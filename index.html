@@ -630,6 +630,19 @@
             align-items: flex-end;
         }
 
+        .global-calc {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+
+        .global-calc input {
+            flex: 1;
+            min-width: 220px;
+        }
+
         .historique-item {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -654,7 +667,7 @@
 
         .historique-info {
             flex: 1;
-            min-width: 250px;
+            min-width: 0;
         }
 
         .historique-info strong {
@@ -716,9 +729,20 @@
         }
 
         .checkbox-historique {
-            width: auto !important;
-            margin-right: var(--spacing-sm) !important;
+            width: 16px !important;
+            height: 16px !important;
+            margin-right: 8px !important;
             cursor: pointer;
+            flex: 0 0 16px;
+        }
+
+        .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            flex: 0 0 20px;
+            margin-right: 1cm;
         }
 
         .export-controls {
@@ -1166,6 +1190,7 @@
                         <option value="tubes">Tube</option>
                         <option value="rondelles">Rondelles</option>
                         <option value="plaques">Plaques</option>
+                        <option value="global">Calcul global</option>
                     </select>
                     <select id="sortBy" onchange="afficherHistorique()">
                         <option value="date-desc">Plus récent d'abord</option>
@@ -1178,6 +1203,10 @@
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-action" onclick="selectAll()" style="flex: 1;">Sélectionner tout</button>
                     <button class="btn-action danger" onclick="deselectAll()" style="flex: 1;">Désélectionner tout</button>
+                </div>
+                <div class="global-calc">
+                    <input type="text" id="globalRef" placeholder="Référence pour calcul global...">
+                    <button class="btn-action" onclick="creerCalculGlobal()">➕ Créer calcul global</button>
                 </div>
             </div>
             <div id="historique-liste"></div>
@@ -1244,6 +1273,60 @@
             if (hours < 24) return `il y a ${hours}h`;
             if (days < 7) return `il y a ${days}j`;
             return date.toLocaleDateString('fr-FR');
+        }
+
+        const typeLabels = {
+            barresRect: 'Barre rectangulaire',
+            barresRondes: 'Barre ronde',
+            tubes: 'Tube',
+            rondelles: 'Rondelle',
+            plaques: 'Plaque',
+            global: 'Calcul global'
+        };
+
+        function getTypeLabel(type) {
+            return typeLabels[type] || type || '—';
+        }
+
+        function toFixed2(value) {
+            return Number(value || 0).toFixed(2);
+        }
+
+        function formatDimensionsForType(type, d = {}, calcul = {}) {
+            if (type === 'global') {
+                return calcul.dimensionsLabel || 'Multi';
+            }
+            if (type === 'barresRondes') {
+                return `Ø ${toFixed2(d.diam)} mm`;
+            }
+            if (type === 'tubes') {
+                return `Ø ext ${toFixed2(d.diamExt)} / Ø int ${toFixed2(d.diamInt)} mm`;
+            }
+            if (type === 'barresRect') {
+                return `${toFixed2(d.larg)} × ${toFixed2(d.haut)} × ${toFixed2(d.long)} mm`;
+            }
+            if (type === 'rondelles') {
+                const ext = toFixed2(d.diamExt);
+                const int = toFixed2(d.diamInt);
+                const ep = toFixed2(d.ep);
+                return d.typeRondelle === 'ouverte'
+                    ? `Ø ext ${ext} / Ø int ${int} × h ${ep} mm`
+                    : `Ø ${ext} × h ${ep} mm`;
+            }
+            if (type === 'plaques') {
+                return `${toFixed2(d.larg)} × ${toFixed2(d.long)} × ${toFixed2(d.ep)} mm`;
+            }
+            return '—';
+        }
+
+        function buildDisplayLine(calcul) {
+            if (calcul.type === 'global') {
+                return 'Calcul global de plusieurs références';
+            }
+            const typeLabel = getTypeLabel(calcul.type);
+            const dims = formatDimensionsForType(calcul.type, calcul.dimensions || {}, calcul);
+            const alliage = calcul.alliage || '—';
+            return `${typeLabel}/${dims}/${alliage}`;
         }
 
         const densites = {
@@ -1532,37 +1615,6 @@
 
             const calc = window.calculActuel || {};
             const dims = calc.dimensions || {};
-            const typeLabels = {
-                barresRect: 'Barres rectangulaires',
-                barresRondes: 'Barres rondes',
-                tubes: 'Tube',
-                rondelles: 'Rondelles',
-                plaques: 'Plaques'
-            };
-
-            function formatDimensions(type, d) {
-                if (type === 'barresRondes') {
-                    return `Ø ${Number(d.diam || 0).toFixed(2)} mm`;
-                }
-                if (type === 'tubes') {
-                    return `Ø ext ${Number(d.diamExt || 0).toFixed(2)} / Ø int ${Number(d.diamInt || 0).toFixed(2)} mm`;
-                }
-                if (type === 'barresRect') {
-                    return `${Number(d.long || 0).toFixed(2)} × ${Number(d.larg || 0).toFixed(2)} mm`;
-                }
-                if (type === 'rondelles') {
-                    const ext = Number(d.diamExt || 0).toFixed(2);
-                    const int = Number(d.diamInt || 0).toFixed(2);
-                    const ep = Number(d.ep || 0).toFixed(2);
-                    return d.typeRondelle === 'ouverte'
-                        ? `Ø ext ${ext} / Ø int ${int} × h ${ep} mm`
-                        : `Ø ${ext} × h ${ep} mm`;
-                }
-                if (type === 'plaques') {
-                    return `${Number(d.long || 0).toFixed(2)} × ${Number(d.larg || 0).toFixed(2)} × ${Number(d.ep || 0).toFixed(2)} mm`;
-                }
-                return '';
-            }
 
             const header = document.createElement('div');
             header.innerHTML = `
@@ -1575,9 +1627,9 @@
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px 16px; margin-bottom:16px; font-size:13px;">
                     <div><strong>Référence :</strong> ${calc.reference || '—'}</div>
+                    <div><strong>Désignation :</strong> ${buildDisplayLine(calc)}</div>
                     <div><strong>Alliage :</strong> ${calc.alliage || '—'}</div>
-                    <div><strong>Type :</strong> ${typeLabels[calc.type] || '—'}</div>
-                    <div><strong>Dimensions :</strong> ${formatDimensions(calc.type, dims) || '—'}</div>
+                    <div><strong>Dimensions :</strong> ${formatDimensionsForType(calc.type, dims, calc) || '—'}</div>
                 </div>
             `;
 
@@ -1644,16 +1696,18 @@
                 const item = document.createElement('div');
                 item.className = 'historique-item';
                 item.innerHTML = `
-                    <div style="display: flex; align-items: center; flex: 1;">
-                        <input type="checkbox" class="checkbox-historique" data-id="${calcul.id}" onchange="document.getElementById('export-controls').classList.add('show')">
+                    <div style="display: flex; align-items: center; flex: 1; gap: 1cm;">
+                        <div class="checkbox-wrap">
+                            <input type="checkbox" class="checkbox-historique" data-id="${calcul.id}" onchange="document.getElementById('export-controls').classList.add('show')">
+                        </div>
                         <div class="historique-info">
                             <strong>${calcul.reference ? '📌 ' + calcul.reference : 'Sans référence'}</strong>
-                            <small>${calcul.type} - ${calcul.alliage} | Marge: ${calcul.marge}%</small>
+                            <small>${buildDisplayLine(calcul)}${calcul.type !== 'global' ? ` | Marge: ${calcul.marge}%` : ''}</small>
                             <small>🕐 ${formatTimeDiff(calcul.date)} | Prix: ${calcul.tableData?.[0]?.prix || 0} CHF | Poids: ${(calcul.tableData?.[0]?.poids || 0)}g</small>
                         </div>
                     </div>
                     <div class="historique-actions">
-                        <button class="btn-small" onclick="chargerCalcul(${calcul.id})">Charger</button>
+                        ${calcul.type !== 'global' ? `<button class="btn-small" onclick="chargerCalcul(${calcul.id})">Charger</button>` : ''}
                         <button class="btn-small danger" onclick="supprimerCalcul(${calcul.id})">Supprimer</button>
                     </div>
                 `;
@@ -1672,6 +1726,73 @@
 
         function deselectAll() {
             document.querySelectorAll('.checkbox-historique').forEach(cb => cb.checked = false);
+        }
+
+        function creerCalculGlobal() {
+            const checkboxes = document.querySelectorAll('.checkbox-historique:checked');
+            if (checkboxes.length === 0) {
+                showToast('Veuillez sélectionner au moins un calcul', 'error');
+                return;
+            }
+
+            const refInput = document.getElementById('globalRef');
+            const reference = (refInput?.value || '').trim();
+            if (!reference) {
+                showToast('Veuillez entrer une référence pour le calcul global', 'error');
+                return;
+            }
+
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+            const selectedItems = historique.filter(item => ids.includes(item.id));
+
+            if (selectedItems.length === 0) {
+                showToast('Aucun calcul sélectionné', 'error');
+                return;
+            }
+
+            const aggregate = {};
+            selectedItems.forEach(item => {
+                (item.tableData || []).forEach(row => {
+                    const quantite = Number(row.quantite) || 0;
+                    if (!aggregate[quantite]) {
+                        aggregate[quantite] = { quantite, prix: 0, poids: 0 };
+                    }
+                    aggregate[quantite].prix += Number(row.prix) || 0;
+                    aggregate[quantite].poids += Number(row.poids) || 0;
+                });
+            });
+
+            const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+            const tableData = Object.values(aggregate)
+                .sort((a, b) => a.quantite - b.quantite)
+                .map(row => ({
+                    quantite: row.quantite,
+                    prix: round2(row.prix),
+                    prixParPiece: row.quantite ? round2(row.prix / row.quantite) : 0,
+                    poids: round2(row.poids)
+                }));
+
+            const nouveau = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                reference,
+                type: 'global',
+                alliage: 'Multi',
+                dimensions: {},
+                dimensionsLabel: 'Multi',
+                marge: 0,
+                tableData,
+                sourceIds: ids
+            };
+
+            historique.unshift(nouveau);
+            historique.splice(50);
+            localStorage.setItem('calculHistorique', JSON.stringify(historique));
+            if (refInput) refInput.value = '';
+            notifierAutresOnglets();
+            afficherHistorique();
+            showToast('✓ Calcul global créé', 'success');
         }
 
         function supprimerSelection() {
@@ -1707,17 +1828,13 @@
 
             selectedItems.forEach((item, index) => {
                 // Build a clean AOA (array of arrays) for the sheet
-                const title = `Export - Calcul ${index + 1}`;
+                const title = `Export - ${item.reference || `Calcul ${index + 1}`}`;
                 const meta = [
                     ['Référence', item.reference || 'N/A', '', ''],
-                    ['Type', item.type, '', ''],
-                    ['Alliage', item.alliage, '', ''],
+                    ['Désignation', buildDisplayLine(item), '', ''],
                     ['Marge (%)', item.marge, '', ''],
                     ['Date', new Date(item.date).toLocaleString('fr-FR'), '', '']
                 ];
-
-                const dimsHeader = ['Dimensions', '', '', ''];
-                const dims = Object.entries(item.dimensions || {}).map(([k, v]) => [k, String(v), '', '']);
 
                 const tableHeader = ['Quantité', 'Prix Total (CHF)', 'Prix/pc (CHF)', 'Poids (g)'];
                 const tableRows = (item.tableData || []).map(row => {
@@ -1733,9 +1850,6 @@
                 aoa.push([title, '', '', '']);
                 aoa.push([]);
                 meta.forEach(r => aoa.push(r));
-                aoa.push([]);
-                aoa.push(dimsHeader);
-                dims.forEach(r => aoa.push(r));
                 aoa.push([]);
                 aoa.push(tableHeader);
                 tableRows.forEach(r => aoa.push(r));
@@ -1798,8 +1912,12 @@
 
             const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
             const selectedItems = historique.filter(item => ids.includes(item.id));
+            const exportItems = selectedItems.map(item => ({
+                ...item,
+                designation: buildDisplayLine(item)
+            }));
 
-            const dataStr = JSON.stringify(selectedItems, null, 2);
+            const dataStr = JSON.stringify(exportItems, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
