@@ -3,178 +3,2377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calcul Tarifs Métaux Précieux</title>
+    <title>Calcul Tarifs Barres et Rondelles Non Usinees</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        /* ============================================
+           ROOT VARIABLES - Apple Design System
+           ============================================ */
         :root {
-            --bg-primary: #ffffff; --bg-secondary: #f5f5f7;
-            --text-primary: #000000; --text-secondary: #666666;
-            --border-color: #e0e0e0; --accent: #0071e3;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            /* Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --accent: #0071e3;
+            --accent-hover: #0066cc;
+            
+            /* Typography */
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+            --font-size-h1: 2rem;
+            --font-size-h2: 1.5rem;
+            --font-size-h3: 1.125rem;
+            --font-size-body: 0.9rem;
+            --font-size-small: 0.8rem;
+            --line-height: 1.4;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 0.75rem;
+            --spacing-lg: 1rem;
+            --spacing-xl: 1.5rem;
+            --spacing-2xl: 2rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.15);
+            
+            /* Transitions */
+            --duration: 0.3s;
+            --easing: cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        /* Dark Mode */
         body.dark-mode {
-            --bg-primary: #1d1d1f; --bg-secondary: #2d2d2f;
-            --text-primary: #ffffff; --text-secondary: #a1a1a6;
+            --bg-primary: #1d1d1f;
+            --bg-secondary: #2d2d2f;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1a6;
             --border-color: #424245;
+            --accent: #0a84ff;
+            --accent-hover: #0077ff;
         }
-        body { font-family: var(--font-family); background: var(--bg-primary); color: var(--text-primary); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .tabs { border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
-        .tab-button { background: none; border: none; padding: 10px 20px; cursor: pointer; color: var(--text-secondary); font-weight: 600; }
-        .tab-button.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        .form-group { flex: 1; min-width: 200px; }
-        label { display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; }
-        input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); }
-        .field-group { display: none; background: var(--bg-secondary); padding: 15px; border-radius: 10px; margin-top: 10px; }
-        .field-group.active { display: block; }
-        button { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 600; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: var(--bg-secondary); border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid var(--border-color); }
-        th { background: #000; color: #fff; font-size: 11px; text-transform: uppercase; }
-        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; color: white; z-index: 100; }
+
+        /* ============================================
+           GLOBAL STYLES
+           ============================================ */
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: var(--line-height);
+            transition: background var(--duration) var(--easing),
+                        color var(--duration) var(--easing);
+        }
+
+        /* ============================================
+           CONTAINER & LAYOUT
+           ============================================ */
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: var(--bg-primary);
+            padding: 1rem;
+            margin: 0 auto;
+            min-height: auto;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.5s var(--easing);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============================================
+           HEADER & TYPOGRAPHY
+           ============================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: var(--font-size-h1);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.2;
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: var(--font-size-h2);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+            margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+        }
+
+        h3 {
+            font-size: var(--font-size-h3);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+        button {
+            font-family: var(--font-family);
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            padding: 0.7rem 1.2rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background var(--duration) var(--easing),
+                        transform var(--duration) var(--easing),
+                        box-shadow var(--duration) var(--easing);
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .toggle-dark {
+            padding: 10px 16px;
+            font-size: var(--font-size-small);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-dark:hover {
+            background: var(--border-color);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ============================================
+           TOAST NOTIFICATIONS
+           ============================================ */
+        .toast {
+            position: fixed;
+            bottom: var(--spacing-lg);
+            right: var(--spacing-lg);
+            background: #34c759;
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s var(--easing);
+            z-index: 1000;
+            font-size: var(--font-size-small);
+            font-weight: 500;
+        }
+
+        .toast.error {
+            background: #ff3b30;
+        }
+
+        .toast.info {
+            background: #0a84ff;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================
+           TABS
+           ============================================ */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1rem;
+            margin-top: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .tab-button {
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: var(--font-size-body);
+            color: var(--text-secondary);
+            transition: color var(--duration) var(--easing),
+                        border-color var(--duration) var(--easing);
+            box-shadow: none;
+        }
+
+        .tab-button:hover {
+            color: var(--text-primary);
+            background: transparent;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab-button.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: transparent;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s var(--easing);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ============================================
+           FORMS & INPUTS
+           ============================================ */
+        .form-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: var(--font-size-small);
+            letter-spacing: -0.01em;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 0.85rem;
+            transition: border-color var(--duration) var(--easing),
+                        box-shadow var(--duration) var(--easing);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+            outline: none;
+        }
+
+        .input-error {
+            border-color: #ff3b30 !important;
+            box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15) !important;
+        }
+
+        .error-msg {
+            color: #ff3b30;
+            font-size: var(--font-size-small);
+            margin-top: var(--spacing-xs);
+            display: none;
+        }
+
+        .error-msg.active {
+            display: block;
+        }
+
+        .field-group {
+            display: none;
+            background: var(--bg-secondary);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.3s var(--easing);
+        }
+
+        .field-group.active {
+            display: block;
+        }
+
+        .field-group h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+            font-size: var(--font-size-h3);
+            font-weight: 600;
+        }
+
+        /* ============================================
+           RESULTS & TABLES
+           ============================================ */
+        #resultat {
+            margin-top: 1.2rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: none;
+            box-shadow: var(--shadow-sm);
+            animation: fadeIn 0.3s var(--easing);
+        }
+
+        #resultat strong {
+            color: var(--accent);
+            font-size: var(--font-size-body);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.25rem;
+            font-size: 0.7rem;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        th,
+        td {
+            padding: 0.3rem;
+            text-align: center;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            font-size: var(--font-size-small);
+            letter-spacing: 0.5px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: var(--bg-secondary);
+        }
+
+        /* ============================================
+           ACTION BUTTONS
+           ============================================ */
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 0.25rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: var(--font-size-small);
+            font-weight: 500;
+            transition: background var(--duration) var(--easing),
+                        transform var(--duration) var(--easing),
+                        box-shadow var(--duration) var(--easing);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-action:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-action.danger {
+            background: #ff3b30;
+        }
+
+        .btn-action.danger:hover {
+            background: #ff453a;
+        }
+
+        .btn-action.success {
+            background: #34c759;
+        }
+
+        .btn-action.success:hover {
+            background: #40d650;
+        }
+
+        .btn-export {
+            background: #34c759;
+            color: white;
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.75rem;
+            transition: background var(--duration) var(--easing),
+                        transform var(--duration) var(--easing),
+                        box-shadow var(--duration) var(--easing);
+            width: 100%;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-export:hover {
+            background: #40d650;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .historique-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .historique-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .historique-info strong {
+            display: block;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .historique-info small {
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .historique-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-small:hover {
+            background: #2980b9;
+        }
+
+        .btn-small.danger {
+            background: #e74c3c;
+        }
+
+        .btn-small.danger:hover {
+            background: #c0392b;
+        }
+
+        #historique-vide {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 30px;
+            font-style: italic;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls input,
+        .filter-controls select {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .sort-select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .preset-section {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .preset-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* ============================================
+           HISTORIQUE & SEARCH SECTIONS
+           ============================================ */
+        .search-section {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .global-calc {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+
+        .global-calc input {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .historique-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            transition: background var(--duration) var(--easing),
+                        transform var(--duration) var(--easing),
+                        box-shadow var(--duration) var(--easing);
+        }
+
+        .historique-item:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .historique-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .historique-info strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+            font-weight: 600;
+        }
+
+        .historique-info small {
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-size: var(--font-size-small);
+        }
+
+        .historique-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: var(--font-size-small);
+            font-weight: 500;
+            transition: background var(--duration) var(--easing),
+                        transform var(--duration) var(--easing),
+                        box-shadow var(--duration) var(--easing);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-small:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-small.danger {
+            background: #ff3b30;
+        }
+
+        .btn-small.danger:hover {
+            background: #ff453a;
+        }
+
+        #historique-vide {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: var(--spacing-2xl);
+            font-style: italic;
+            font-size: var(--font-size-body);
+        }
+
+        .checkbox-historique {
+            width: 16px !important;
+            height: 16px !important;
+            margin-right: 8px !important;
+            cursor: pointer;
+            flex: 0 0 16px;
+        }
+
+        .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            flex: 0 0 20px;
+            margin-right: 1cm;
+        }
+
+        .export-controls {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .export-controls.show {
+            display: block;
+            animation: fadeIn 0.3s var(--easing);
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+        @media (max-width: 1024px) {
+            .container {
+                padding: var(--spacing-xl);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 14px;
+            }
+
+            .container {
+                padding: var(--spacing-lg);
+                min-height: auto;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+                margin: var(--spacing-lg) 0;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                text-align: center;
+            }
+
+            .header-controls {
+                justify-content: center;
+            }
+
+            .tabs {
+                gap: 0;
+                margin-bottom: var(--spacing-lg);
+                overflow-x: auto;
+            }
+
+            .tab-button {
+                padding: var(--spacing-md);
+                min-width: fit-content;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .form-group {
+                min-width: 100%;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+            }
+
+            .historique-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .historique-actions {
+                width: 100%;
+            }
+
+            button {
+                padding: var(--spacing-md);
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-action {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            html {
+                font-size: 13px;
+            }
+
+            .container {
+                padding: var(--spacing-md);
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: var(--spacing-sm);
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+                border-radius: 0;
+            }
+
+            .tab-button.active {
+                border-left-color: var(--accent);
+                border-bottom-color: transparent;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h3>CALCUL TARIFS BARRES ET RONDELLES</h3>
-            <button onclick="toggleDarkMode()" style="width: auto;">🌓 Mode</button>
+            <h1>CALCUL TARIFS BARRES ET RONDELLES NON USINEES</h1>
+            <div class="header-controls">
+                <button class="toggle-dark" onclick="toggleDarkMode()">🌙 Mode sombre</button>
+            </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-button active" onclick="showTab('calcul')">Calcul</button>
-            <button class="tab-button" onclick="showTab('resultats')">Résultats</button>
+            <button class="tab-button active" data-tab="calcul">Calcul</button>
+            <button class="tab-button" data-tab="resultats">Résultats</button>
+            <button class="tab-button" data-tab="historique">Historique</button>
         </div>
 
         <div id="calcul" class="tab-content active">
-            <div class="form-row">
-                <div class="form-group"><label>Référence</label><input type="text" id="reference"></div>
-                <div class="form-group"><label>Marge (%)</label><input type="number" id="marge" value="10"></div>
+            <form id="calculateur">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reference">Référence :</label>
+                        <input type="text" id="reference" placeholder="Ex: Projet A, Client B...">
+                    </div>
+                    <div class="form-group">
+                        <label for="marge">Marge (%) :</label>
+                        <input type="number" id="marge" step="0.01" min="0" max="100" value="10">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="typePiece">Type de pièce :</label>
+                        <select id="typePiece" required>
+                            <option value="">Sélectionnez</option>
+                            <option value="barresRect">Barres rectangulaires</option>
+                            <option value="barresRondes">Barres rondes</option>
+                            <option value="tubes">Tube</option>
+                            <option value="rondelles">Rondelles</option>
+                            <option value="plaques">Plaques</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="alliage">Alliage :</label>
+                        <select id="alliage" required>
+                            <option value="">Sélectionnez</option>
+                            <option value="OR GRIS 0125 / 5125">OR GRIS 0125 / 5125</option>
+                            <option value="OR GRIS 0150 / 5150">OR GRIS 0150 / 5150</option>
+                            <option value="OR GRIS 0210 / 5210">OR GRIS 0210 / 5210</option>
+                            <option value="OR ROSE 5N / 500">OR ROSE 5N / 500</option>
+                            <option value="OR JAUNE 4N / 418">OR JAUNE 4N / 418</option>
+                            <option value="OR JAUNE 3N / 318">OR JAUNE 3N / 318</option>
+                            <option value="OR JAUNE 2N / 218">OR JAUNE 2N / 218</option>
+                            <option value="PLATINE / PT801">PLATINE / PT801</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="fields">
+                    <div class="field-group" id="barresRectFields">
+                        <h3>Dimensions des barres rectangulaires</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="largRect">Largeur (mm) :</label>
+                                <input type="number" id="largRect" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="hautRect">Hauteur (mm) :</label>
+                                <input type="number" id="hautRect" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="longRect">Longueur utile (mm) :</label>
+                                <input type="number" id="longRect" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="barresRondesFields">
+                        <h3>Dimensions des barres rondes</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="diamRond">Diamètre (mm) :</label>
+                                <input type="number" id="diamRond" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="longRond">Longueur utile (mm) :</label>
+                                <input type="number" id="longRond" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="tubesFields">
+                        <h3>Dimensions des tubes</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="diamTubeExt">Diamètre extérieur (mm) :</label>
+                                <input type="number" id="diamTubeExt" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="diamTubeInt">Diamètre intérieur (mm) :</label>
+                                <input type="number" id="diamTubeInt" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="longTube">Longueur utile (mm) :</label>
+                                <input type="number" id="longTube" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="rondellesFields">
+                        <h3>Dimensions des rondelles</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="typeRondelle">Type :</label>
+                                <select id="typeRondelle">
+                                    <option value="pleine">Pleine</option>
+                                    <option value="ouverte">Ouverte</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="diamExtRond">Diamètre extérieur (mm) :</label>
+                                <input type="number" id="diamExtRond" step="1" min="0" placeholder="Entier uniquement">
+                            </div>
+                            <div class="form-group" id="diamIntGroup" style="display: none;">
+                                <label for="diamIntRond">Diamètre intérieur (mm) :</label>
+                                <input type="number" id="diamIntRond" step="1" min="0" placeholder="Entier uniquement">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="epRond">Épaisseur (mm) :</label>
+                                <input type="number" id="epRond" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="qteRondelle">Quantité utile (unités) :</label>
+                                <input type="number" id="qteRondelle" step="1" min="1" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="surplusRond">Surplus :</label>
+                                <input type="number" id="surplusRond" step="1" min="0" value="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="plaquesFields">
+                        <h3>Dimensions des plaques</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="typePlaque">Type :</label>
+                                <select id="typePlaque">
+                                    <option value="pleine">Pleine</option>
+                                    <option value="ouverte">Ouverte</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="dimensionsPlaque">Dimensions (mm) :</label>
+                                <select id="dimensionsPlaque" required>
+                                    <option value="">Sélectionnez</option>
+                                    <option value="13.00|13.00">DR 13.00 × 13.00 (+0.2/0)</option>
+                                    <option value="17.00|17.00">DR 17.00 × 17.00 (+0.3/0)</option>
+                                    <option value="18.00|16.00">DR 18.00 × 16.00 (±0.1)</option>
+                                    <option value="18.00|18.00">DR 18.00 × 18.00 (+0.1)</option>
+                                    <option value="19.00|12.00">DR 19.00 × 12.00 (+0.4/0)</option>
+                                    <option value="19.00|14.00">DR 19.00 × 14.00 (+0.2/0)</option>
+                                    <option value="19.00|19.00">DR 19.00 × 19.00 (+0.3/0)</option>
+                                    <option value="19.50|16.50">DR 19.50 × 16.50</option>
+                                    <option value="20.00|20.00">DR 20.00 × 20.00 (+0.2/0)</option>
+                                    <option value="20.60|14.30">DR 20.60 × 14.30 (+0.3/0)</option>
+                                    <option value="21.00|16.00">DR 21.00 × 16.00 (+0.3/-0.1)</option>
+                                    <option value="21.00|19.00">DR 21.00 × 19.00 (+0.3/0)</option>
+                                    <option value="22.40|15.20">DR 22.40 × 15.20 (+0.1/0)</option>
+                                    <option value="23.00|19.00">DR 23.00 × 19.00 (+0.4/0)</option>
+                                    <option value="23.00|20.00">DR 23.00 × 20.00 (+0.2/0)</option>
+                                    <option value="23.00|23.00">DR 23.00 × 23.00 (+0.2/0)</option>
+                                    <option value="25.00|15.00">DR 25.00 × 15.00 (±0.2)</option>
+                                    <option value="25.00|18.00">DR 25.00 × 18.00 (+0.1/0)</option>
+                                    <option value="25.00|25.00">DR 25.00 × 25.00 (+0.3/0)</option>
+                                    <option value="25.20|20.80">DR 25.20 × 20.80 (+0.4/0)</option>
+                                    <option value="25.70|15.70">DR 25.70 × 15.70 (+0.4/0)</option>
+                                    <option value="26.00|16.00">DR 26.00 × 16.00</option>
+                                    <option value="26.00|23.00">DR 26.00 × 23.00 (+0.3/0)</option>
+                                    <option value="27.00|16.50">DR 27.00 × 16.50 (+0.2/0)</option>
+                                    <option value="27.00|17.00">DR 27.00 × 17.00 (±0.1)</option>
+                                    <option value="27.50|18.80">DR 27.50 × 18.80 (+0.4/0)</option>
+                                    <option value="27.50|27.50">DR 27.50 × 27.50 (+0.1/0)</option>
+                                    <option value="28.00|21.00">DR 28.00 × 21.00 (+0.4/0)</option>
+                                    <option value="28.00|25.00">DR 28.00 × 25.00 (+0.5/0)</option>
+                                    <option value="28.00|25.50">DR 28.00 × 25.50 (±0.1)</option>
+                                    <option value="28.00|28.00">DR 28.00 × 28.00 (+0.4/0)</option>
+                                    <option value="28.90|28.90">DR 28.90 × 28.90 (+0.1/0)</option>
+                                    <option value="29.00|18.00">DR 29.00 × 18.00 (+0.2/0)</option>
+                                    <option value="29.00|21.50">DR 29.00 × 21.50 (+0.15/0)</option>
+                                    <option value="29.10|29.10">DR 29.10 × 29.10 (+0.1/0)</option>
+                                    <option value="30.00|20.00">DR 30.00 × 20.00 (+0.4/0)</option>
+                                    <option value="30.00|30.00">DR 30.00 × 30.00 (+0.3/0)</option>
+                                    <option value="30.50|27.00">DR 30.50 × 27.00 (+0.2/0)</option>
+                                    <option value="31.00|14.00">DR 31.00 × 14.00 (+0.2/-0.1)</option>
+                                    <option value="31.00|19.50">DR 31.00 × 19.50 (+0.2/0)</option>
+                                    <option value="31.00|23.50">DR 31.00 × 23.50 (+0.2/0)</option>
+                                    <option value="31.00|28.00">DR 31.00 × 28.00 (+0.1/0)</option>
+                                    <option value="31.00|29.00">DR 31.00 × 29.00 (+0.2/0)</option>
+                                    <option value="31.00|31.00">DR 31.00 × 31.00 (+0.2/0)</option>
+                                    <option value="31.50|21.50">DR 31.50 × 21.50 (+0.3/-0.2)</option>
+                                    <option value="31.50|24.50">DR 31.50 × 24.50 (+0.3/0)</option>
+                                    <option value="33.00|18.00">DR 33.00 × 18.00 (+0.2/0)</option>
+                                    <option value="33.30|33.30">DR 33.30 × 33.30 (+0.4/0)</option>
+                                    <option value="34.00|29.00">DR 34.00 × 29.00 (+0.3/0)</option>
+                                    <option value="34.00|34.00">DR 34.00 × 34.00 (+0.2/0)</option>
+                                    <option value="34.50|25.50">DR 34.50 × 25.50 (+0.4/0)</option>
+                                    <option value="34.50|34.50">DR 34.50 × 34.50 (+0.3/0)</option>
+                                    <option value="35.00|25.00">DR 35.00 × 25.00 (+0.3/0)</option>
+                                    <option value="35.00|25.50">DR 35.00 × 25.50 (+0.4/-0.2)</option>
+                                    <option value="35.50|23.20">DR 35.50 × 23.20 (+0.3/0)</option>
+                                    <option value="35.50|30.00">DR 35.50 × 30.00 (+0.4/0)</option>
+                                    <option value="36.00|31.00">DR 36.00 × 31.00 (+0.3/0)</option>
+                                    <option value="36.00|36.00">DR 36.00 × 36.00 (+0.3/0)</option>
+                                    <option value="37.00|28.50">DR 37.00 × 28.50 (+0.3/-0.1)</option>
+                                    <option value="37.00|37.00">DR 37.00 × 37.00 (+0.4/0)</option>
+                                    <option value="38.00|32.00">DR 38.00 × 32.00 (+0.3/0)</option>
+                                    <option value="38.00|35.00">DR 38.00 × 35.00 (+0.2/0)</option>
+                                    <option value="38.00|38.00">DR 38.00 × 38.00 (+0.4/0)</option>
+                                    <option value="38.50|38.50">DR 38.50 × 38.50 (+0.5/0)</option>
+                                    <option value="39.00|16.00">DR 39.00 × 16.00 (+0.4/0)</option>
+                                    <option value="40.00|40.00">DR 40.00 × 40.00 (+0.2/0)</option>
+                                    <option value="41.00|10.00">DR 41.00 × 10.00 (+0.3/0)</option>
+                                    <option value="41.00|30.00">DR 41.00 × 30.00 (+0.3/-0.1)</option>
+                                    <option value="42.00|35.00">DR 42.00 × 35.00 (+0.3/0)</option>
+                                    <option value="42.00|36.00">DR 42.00 × 36.00 (+0.4/0)</option>
+                                    <option value="42.50|34.00">DR 42.50 × 34.00 (+0.3/0)</option>
+                                    <option value="43.00|43.00">DR 43.00 × 43.00 (+0.3/0)</option>
+                                    <option value="44.00|34.50">DR 44.00 × 34.50 (+0.4/0)</option>
+                                    <option value="44.00|37.00">DR 44.00 × 37.00 (+0.4/0)</option>
+                                    <option value="44.00|44.00">DR 44.00 × 44.00 (+0.3/0)</option>
+                                    <option value="45.00|33.00">DR 45.00 × 33.00 (+0.4/0)</option>
+                                    <option value="45.00|38.00">DR 45.00 × 38.00 (+0.4/0)</option>
+                                    <option value="45.00|45.00">DR 45.00 × 45.00 (+0.3/0)</option>
+                                    <option value="46.00|39.00">DR 46.00 × 39.00 (+0.4/0)</option>
+                                    <option value="46.00|40.00">DR 46.00 × 40.00 (+0.4/0)</option>
+                                    <option value="46.00|44.50">DR 46.00 × 44.50 (+0.4/0)</option>
+                                    <option value="46.00|46.00">DR 46.00 × 46.00 (+0.3/0)</option>
+                                    <option value="47.00|30.00">DR 47.00 × 30.00 (+0.4/0)</option>
+                                    <option value="47.00|38.00">DR 47.00 × 38.00 (+0.4/0)</option>
+                                    <option value="47.30|47.30">DR 47.30 × 47.30 (+0.3/0)</option>
+                                    <option value="48.00|42.00">DR 48.00 × 42.00 (+0.4/0)</option>
+                                    <option value="49.00|39.00">DR 49.00 × 39.00 (+0.3/0)</option>
+                                    <option value="50.00|36.00">DR 50.00 × 36.00 (+0.3/0)</option>
+                                    <option value="51.00|44.00">DR 51.00 × 44.00 (+0.4/0)</option>
+                                    <option value="52.00|52.00">DR 52.00 × 52.00 (0/-0.4)</option>
+                                    <option value="52.50|36.50">DR 52.50 × 36.50</option>
+                                    <option value="53.00|44.00">DR 53.00 × 44.00 (+0.4/0)</option>
+                                    <option value="54.00|38.00">DR 54.00 × 38.00 (+0.4/-0.1)</option>
+                                    <option value="55.00|47.00">DR 55.00 × 47.00 (+0.4/-0.1)</option>
+                                    <option value="56.00|51.00">DR 56.00 × 51.00 (+0.3/0)</option>
+                                    <option value="57.00|47.00">DR 57.00 × 47.00 (+0.4/0)</option>
+                                    <option value="60.00|46.00">DR 60.00 × 46.00 (+0.4/-0.1)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" id="trouPlaqueGroup" style="display: none;">
+                                <label for="diamTrouPlaque">Diamètre du trou (mm) :</label>
+                                <input type="number" id="diamTrouPlaque" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="epPlaque">Épaisseur (mm) :</label>
+                                <input type="number" id="epPlaque" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="qtePlaque">Quantité utile (unités) :</label>
+                                <input type="number" id="qtePlaque" step="1" min="1" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="surplusPlaque">Surplus :</label>
+                                <input type="number" id="surplusPlaque" step="1" min="0" value="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" onclick="document.getElementById('calculateur').dispatchEvent(new Event('submit', { bubbles: true })); return false;">Calculer le prix (Entrée)</button>
+            </form>
+        </div>
+
+        <div id="resultats" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn-action success" onclick="copierTableau()">📋 Copier le tableau</button>
+                <button class="btn-action" onclick="afficherDetailsPDF()">📄 Export PDF</button>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Type de pièce</label>
-                    <select id="typePiece" onchange="updateFields()">
-                        <option value="">Sélectionnez</option>
+            <div id="resultat"></div>
+        </div>
+
+        <div id="historique" class="tab-content">
+            <div class="search-section">
+                <div class="filter-controls">
+                    <input type="text" id="searchRef" placeholder="Rechercher par référence..." onkeyup="afficherHistorique()">
+                    <select id="filterType" onchange="afficherHistorique()">
+                        <option value="">Tous les types</option>
                         <option value="barresRect">Barres rectangulaires</option>
                         <option value="barresRondes">Barres rondes</option>
                         <option value="tubes">Tube</option>
                         <option value="rondelles">Rondelles</option>
                         <option value="plaques">Plaques</option>
+                        <option value="global">Calcul global</option>
+                    </select>
+                    <select id="sortBy" onchange="afficherHistorique()">
+                        <option value="date-desc">Plus récent d'abord</option>
+                        <option value="date-asc">Plus ancien d'abord</option>
+                        <option value="prix-desc">Prix décroissant</option>
+                        <option value="prix-asc">Prix croissant</option>
+                        <option value="ref-asc">Référence (A-Z)</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Alliage</label>
-                    <select id="alliage">
-                        <option value="OR GRIS 0125 / 5125">OR GRIS 0125 / 5125</option>
-                        <option value="OR GRIS 0150 / 5150">OR GRIS 0150 / 5150</option>
-                        <option value="OR ROSE 5N / 500">OR ROSE 5N / 500</option>
-                        <option value="OR JAUNE 3N / 318">OR JAUNE 3N / 318</option>
-                        <option value="PLATINE / PT801">PLATINE / PT801</option>
-                    </select>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-action" onclick="selectAll()" style="flex: 1;">Sélectionner tout</button>
+                    <button class="btn-action danger" onclick="deselectAll()" style="flex: 1;">Désélectionner tout</button>
+                </div>
+                <div class="global-calc">
+                    <input type="text" id="globalRef" placeholder="Référence pour calcul global...">
+                    <button class="btn-action" onclick="creerCalculGlobal()">➕ Créer calcul global</button>
                 </div>
             </div>
-
-            <div id="barresRectFields" class="field-group">
-                <div class="form-row">
-                    <div class="form-group"><label>Larg (mm)</label><input type="number" id="largRect" step="0.01"></div>
-                    <div class="form-group"><label>Haut (mm)</label><input type="number" id="hautRect" step="0.01"></div>
-                    <div class="form-group"><label>Long utile (mm)</label><input type="number" id="longRect" step="0.01"></div>
-                </div>
+            <div id="historique-liste"></div>
+            <div id="historique-vide">Aucun calcul sauvegardé</div>
+            <div id="export-controls" class="export-controls">
+                <button class="btn-export" onclick="exporterHistoriqueExcel()">📊 Exporter en Excel</button>
+                <button class="btn-export" onclick="exporterHistoriqueJSON()">💾 Exporter en JSON</button>
+                <button class="btn-export" style="background: #8e44ad;" onclick="supprimerSelection()">🗑️ Supprimer la sélection</button>
+                <button class="btn-export danger" onclick="reinitialiserHistorique()" style="margin-top: 20px;">🔄 Réinitialiser tout l'historique</button>
             </div>
-
-            <div id="barresRondesFields" class="field-group">
-                <div class="form-row">
-                    <div class="form-group"><label>Diamètre (mm)</label><input type="number" id="diamRond" step="0.01"></div>
-                    <div class="form-group"><label>Long utile (mm)</label><input type="number" id="longRond" step="0.01"></div>
-                </div>
-            </div>
-
-            <button onclick="executerCalcul()" style="margin-top: 20px;">CALCULER</button>
         </div>
 
-        <div id="resultats" class="tab-content">
-            <div id="zoneResultat"></div>
-        </div>
     </div>
 
     <script>
-        const densites = { 'OR GRIS 0125 / 5125': 15.9, 'OR GRIS 0150 / 5150': 15.8, 'OR ROSE 5N / 500': 15.4, 'OR JAUNE 3N / 318': 15.6, 'PLATINE / PT801': 21.4 };
-        const surtitrages = { 'OR GRIS 0125 / 5125': 70, 'OR GRIS 0150 / 5150': 140, 'OR ROSE 5N / 500': 35, 'OR JAUNE 3N / 318': 42, 'PLATINE / PT801': 0 };
-        
-        const tarifs = {
-            mise: { 'OR GRIS 0125 / 5125': {kg: 465, min:0}, 'PLATINE / PT801': {kg: 2368, min: 500}, default: {kg: 339, min: 0} },
-            facon: { 'PLATINE / PT801': 0.8, default: 0.02 }
+        // Raccourcis clavier
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                sauvegarderCalculActuel();
+            }
+            if (e.key === 'Enter' && document.activeElement.tagName !== 'TEXTAREA') {
+                if (document.getElementById('calcul').classList.contains('active')) {
+                    document.getElementById('calculateur').dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        // Mode sombre
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.toggle-dark').textContent = '☀️ Mode clair';
+        }
+
+        // Notifications toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Format temps écoulé
+        function formatTimeDiff(date) {
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (seconds < 60) return 'à l\'instant';
+            if (minutes < 60) return `il y a ${minutes}m`;
+            if (hours < 24) return `il y a ${hours}h`;
+            if (days < 7) return `il y a ${days}j`;
+            return date.toLocaleDateString('fr-FR');
+        }
+
+        const typeLabels = {
+            barresRect: 'Barre rectangulaire',
+            barresRondes: 'Barre ronde',
+            tubes: 'Tube',
+            rondelles: 'Rondelle',
+            plaques: 'Plaque',
+            global: 'Calcul global'
         };
 
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-        function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function updateFields() { document.querySelectorAll('.field-group').forEach(f => f.classList.remove('active')); const type = document.getElementById('typePiece').value; if(type) document.getElementById(type + 'Fields').classList.add('active'); }
-
-        function calculerDechetBarre(lgUtileXQte) {
-            const baseBarre = 1440; const dechet = 60;
-            return Math.ceil(lgUtileXQte / baseBarre) * dechet;
+        function getTypeLabel(type) {
+            return typeLabels[type] || type || '—';
         }
 
-        function executerCalcul() {
+        function toFixed2(value) {
+            return Number(value || 0).toFixed(2);
+        }
+
+        function formatDimensionsForType(type, d = {}, calcul = {}) {
+            if (type === 'global') {
+                return calcul.dimensionsLabel || 'Multi';
+            }
+            if (type === 'barresRondes') {
+                return `Ø ${toFixed2(d.diam)} mm`;
+            }
+            if (type === 'tubes') {
+                return `Ø ext ${toFixed2(d.diamExt)} / Ø int ${toFixed2(d.diamInt)} mm`;
+            }
+            if (type === 'barresRect') {
+                return `${toFixed2(d.larg)} × ${toFixed2(d.haut)} × ${toFixed2(d.long)} mm`;
+            }
+            if (type === 'rondelles') {
+                const ext = toFixed2(d.diamExt);
+                const int = toFixed2(d.diamInt);
+                const ep = toFixed2(d.ep);
+                return d.typeRondelle === 'ouverte'
+                    ? `Ø ext ${ext} / Ø int ${int} × h ${ep} mm`
+                    : `Ø ${ext} × h ${ep} mm`;
+            }
+            if (type === 'plaques') {
+                return `${toFixed2(d.larg)} × ${toFixed2(d.long)} × ${toFixed2(d.ep)} mm`;
+            }
+            return '—';
+        }
+
+        function buildDisplayLine(calcul) {
+            if (calcul.type === 'global') {
+                return 'Calcul global de plusieurs références';
+            }
+            const typeLabel = getTypeLabel(calcul.type);
+            const dims = formatDimensionsForType(calcul.type, calcul.dimensions || {}, calcul);
+            const alliage = calcul.alliage || '—';
+            return `${typeLabel}/${dims}/${alliage}`;
+        }
+
+        const densites = {
+            'OR GRIS 0125 / 5125': 15.9, 'OR GRIS 0150 / 5150': 15.8, 'OR GRIS 0210 / 5210': 17.2,
+            'OR JAUNE 4N / 418': 15.6, 'OR JAUNE 3N / 318': 15.6, 'OR JAUNE 2N / 218': 15.6,
+            'OR ROSE 5N / 500': 15.4, 'PLATINE / PT801': 21.4
+        };
+
+        const surtitrages = {
+            'OR GRIS 0125 / 5125': 70,
+            'OR GRIS 0150 / 5150': 140,
+            'OR GRIS 0210 / 5210': 84,
+            'OR ROSE 5N / 500': 35,
+            'OR JAUNE 4N / 418': 35,
+            'OR JAUNE 3N / 318': 42,
+            'OR JAUNE 2N / 218': 42,
+            'PLATINE / PT801': 0
+        };
+
+        const tarifs = {
+            barresRect: {
+                miseAlliage: {
+                    'OR JAUNE 2N / 218': { kg: 339, min: 0 }, 'OR JAUNE 3N / 318': { kg: 339, min: 0 },
+                    'OR JAUNE 4N / 418': { kg: 339, min: 0 }, 'OR ROSE 5N / 500': { kg: 342, min: 0 }, 'OR GRIS 0125 / 5125': { kg: 465, min: 0 }, 'OR GRIS 0150 / 5150': { kg: 530, min: 0 },
+                    'OR GRIS 0210 / 5210': { kg: 530, min: 0 }, 'PLATINE / PT801': { kg: 2368, min: 500 }
+                },
+                facon: {
+                    'OR JAUNE 2N / 218': { mm: 0.02, min: 100 }, 'OR JAUNE 3N / 318': { mm: 0.02, min: 100 },
+                    'OR JAUNE 4N / 418': { mm: 0.02, min: 100 }, 'OR ROSE 5N / 500': { mm: 0.02, min: 100 },
+                    'OR GRIS 0125 / 5125': { mm: 0.02, min: 150 }, 'OR GRIS 0150 / 5150': { mm: 0.02, min: 150 },
+                    'OR GRIS 0210 / 5210': { mm: 0.02, min: 150 }, 'PLATINE / PT801': { mm: 0.8, min: 400 }
+                },
+                fmo: {
+                    'OR JAUNE 2N / 218': 0, 'OR JAUNE 3N / 318': 0, 'OR JAUNE 4N / 418': 0, 'OR ROSE 5N / 500': 0,
+                    'OR GRIS 0125 / 5125': 0, 'OR GRIS 0150 / 5150': 0, 'OR GRIS 0210 / 5210': 0, 'PLATINE / PT801': 150
+                }
+            },
+            barresRondes: {
+                miseAlliage: {
+                    'OR JAUNE 2N / 218': { kg: 339, min: 0 }, 'OR JAUNE 3N / 318': { kg: 339, min: 0 },
+                    'OR JAUNE 4N / 418': { kg: 339, min: 0 }, 'OR ROSE 5N / 500': { kg: 342, min: 0 }, 'OR GRIS 0125 / 5125': { kg: 465, min: 0 }, 'OR GRIS 0150 / 5150': { kg: 530, min: 0 },
+                    'OR GRIS 0210 / 5210': { kg: 530, min: 0 }, 'PLATINE / PT801': { kg: 2368, min: 500 }
+                },
+                facon: {
+                    platine: { '<3': 150, '>3': 100 },
+                    autres: { '<1': 130, '1.05-3': 110, '3.05-5': 50, '>5': 25 }
+                },
+                fmo: {
+                    'OR JAUNE 2N / 218': 100, 'OR JAUNE 3N / 318': 100, 'OR JAUNE 4N / 418': 100, 'OR ROSE 5N / 500': 100,
+                    'OR GRIS 0125 / 5125': 100, 'OR GRIS 0150 / 5150': 100, 'OR GRIS 0210 / 5210': 100, 'PLATINE / PT801': 200
+                }
+            },
+            rondellesPlaques: {
+                miseAlliage: {
+                    'OR JAUNE 2N / 218': { kg: 328, min: 150 }, 'OR JAUNE 3N / 318': { kg: 328, min: 150 },
+                    'OR JAUNE 4N / 418': { kg: 328, min: 150 }, 'OR ROSE 5N / 500': { kg: 331, min: 150 },
+                    'OR GRIS 0125 / 5125': { kg: 422, min: 250 }, 'OR GRIS 0150 / 5150': { kg: 476, min: 250 },
+                    'OR GRIS 0210 / 5210': { kg: 476, min: 250 }, 'PLATINE / PT801': { kg: 2422, min: 500 }
+                },
+                facon: {
+                    'OR JAUNE 2N / 218': { piece: 1.2, min: 0 }, 'OR JAUNE 3N / 318': { piece: 1.2, min: 0 },
+                    'OR JAUNE 4N / 418': { piece: 1.2, min: 0 }, 'OR ROSE 5N / 500': { piece: 1.2, min: 0 },
+                    'OR GRIS 0125 / 5125': { piece: 1.2, min: 0 }, 'OR GRIS 0150 / 5150': { piece: 1.2, min: 0 },
+                    'OR GRIS 0210 / 5210': { piece: 1.2, min: 0 }, 'PLATINE / PT801': { piece: 1.2, min: 200 }
+                }
+            }
+        };
+
+        // Gestion des onglets
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+                
+                if (tabName === 'historique') afficherHistorique();
+            });
+        });
+
+        function updateFields() {
             const type = document.getElementById('typePiece').value;
-            const alliage = document.getElementById('alliage').value;
-            const marge = parseFloat(document.getElementById('marge').value) || 0;
-            const densite = densites[alliage];
-            
-            if(!type) return alert("Sélectionnez un type");
+            document.querySelectorAll('.field-group').forEach(group => group.classList.remove('active'));
+            if (type) document.getElementById(type + 'Fields').classList.add('active');
+        }
 
-            let sectionMM2 = 0;
-            let longUtileUnit = 0;
+        document.getElementById('typePiece').addEventListener('change', updateFields);
+        document.getElementById('typePiece').addEventListener('change', function() {
+            localStorage.setItem('lastTypePiece', this.value || '');
+        });
+        document.getElementById('alliage').addEventListener('change', function() {
+            localStorage.setItem('lastAlliage', this.value || '');
+        });
+        document.getElementById('typeRondelle').addEventListener('change', function() {
+            document.getElementById('diamIntGroup').style.display = this.value === 'ouverte' ? 'block' : 'none';
+        });
+        document.getElementById('typePlaque').addEventListener('change', function() {
+            document.getElementById('trouPlaqueGroup').style.display = this.value === 'ouverte' ? 'block' : 'none';
+        });
 
-            if(type === 'barresRect') {
-                sectionMM2 = (parseFloat(document.getElementById('largRect').value) || 0) * (parseFloat(document.getElementById('hautRect').value) || 0);
-                longUtileUnit = parseFloat(document.getElementById('longRect').value) || 0;
-            } else if(type === 'barresRondes') {
-                const d = parseFloat(document.getElementById('diamRond').value) || 0;
-                sectionMM2 = Math.PI * Math.pow(d/2, 2);
-                longUtileUnit = parseFloat(document.getElementById('longRond').value) || 0;
+        function setFieldError(input, message) {
+            if (!input) return;
+            input.classList.add('input-error');
+            let msg = input.parentElement.querySelector('.error-msg');
+            if (!msg) {
+                msg = document.createElement('div');
+                msg.className = 'error-msg';
+                input.parentElement.appendChild(msg);
+            }
+            msg.textContent = message;
+            msg.classList.add('active');
+        }
+
+        function clearFieldError(input) {
+            if (!input) return;
+            input.classList.remove('input-error');
+            const msg = input.parentElement.querySelector('.error-msg');
+            if (msg) msg.classList.remove('active');
+        }
+
+        function validateRequiredFields(type) {
+            let valid = true;
+
+            const required = [];
+            if (type === 'barresRect') {
+                required.push('largRect', 'hautRect', 'longRect');
+            } else if (type === 'barresRondes') {
+                required.push('diamRond', 'longRond');
+            } else if (type === 'tubes') {
+                required.push('diamTubeExt', 'diamTubeInt', 'longTube');
+            } else if (type === 'rondelles') {
+                required.push('diamExtRond', 'epRond', 'qteRondelle');
+                if (document.getElementById('typeRondelle').value === 'ouverte') {
+                    required.push('diamIntRond');
+                }
+            } else if (type === 'plaques') {
+                required.push('dimensionsPlaque', 'epPlaque', 'qtePlaque');
+                if (document.getElementById('typePlaque').value === 'ouverte') {
+                    required.push('diamTrouPlaque');
+                }
             }
 
-            const facteurs = [1, 3, 5, 10, 20, 50];
-            let html = `<table><tr><th>Quantité</th><th>Poids (g)</th><th>Prix Total (CHF)</th><th>Prix/pc</th></tr>`;
-
-            facteurs.forEach(qte => {
-                const lgTotUtile = longUtileUnit * qte;
-                const dechet = calculerDechetBarre(lgTotUtile);
-                const lgFacturee = lgTotUtile + dechet;
-
-                // Calcul Volume en mm3 -> conversion cm3 et kg direct
-                const poidsKg = (sectionMM2 * lgFacturee * densite) / 1000000;
-                
-                const tMise = tarifs.mise[alliage] || tarifs.mise.default;
-                const fMise = Math.max(poidsKg * tMise.kg, tMise.min);
-                const fFacon = lgFacturee * (tarifs.facon[alliage] || tarifs.facon.default);
-                const fSurtitrage = poidsKg * (surtitrages[alliage] || 0);
-                
-                const totalHT = fMise + fFacon + fSurtitrage;
-                const totalTTC = totalHT * (1 + marge/100);
-
-                html += `<tr>
-                    <td>${qte} PC</td>
-                    <td>${(poidsKg * 1000).toFixed(2)}g</td>
-                    <td>${totalTTC.toFixed(2)}</td>
-                    <td>${(totalTTC / qte).toFixed(2)}</td>
-                </tr>`;
+            required.forEach(id => {
+                const input = document.getElementById(id);
+                const value = (input?.value || '').trim();
+                const isMissing = value === '' || value === '0';
+                if (isMissing) {
+                    valid = false;
+                    setFieldError(input, 'Champ requis');
+                } else {
+                    clearFieldError(input);
+                }
             });
 
-            html += `</table>`;
-            document.getElementById('zoneResultat').innerHTML = html;
-            showTab('resultats');
+            if (type === 'tubes') {
+                const ext = parseFloat(document.getElementById('diamTubeExt')?.value) || 0;
+                const int = parseFloat(document.getElementById('diamTubeInt')?.value) || 0;
+                if (int <= 0 || ext <= 0 || int >= ext) {
+                    valid = false;
+                    setFieldError(document.getElementById('diamTubeInt'), 'Doit être < diamètre extérieur');
+                }
+            }
+
+            return valid;
         }
+
+        document.addEventListener('input', function(e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
+                clearFieldError(e.target);
+            }
+        });
+
+        // Sauvegarder le calcul
+        function sauvegarderCalculActuel() {
+            if (!window.calculActuel) {
+                showToast('Aucun calcul à sauvegarder!', 'error');
+                return;
+            }
+            
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+            const nouveau = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                reference: window.calculActuel.reference,
+                type: window.calculActuel.type,
+                alliage: window.calculActuel.alliage,
+                dimensions: window.calculActuel.dimensions,
+                marge: window.calculActuel.marge,
+                tableData: window.calculActuel.tableData
+            };
+            historique.unshift(nouveau);
+            historique.splice(50);
+            localStorage.setItem('calculHistorique', JSON.stringify(historique));
+            notifierAutresOnglets();
+            afficherHistorique();
+            showToast('✓ Calcul sauvegardé avec succès!', 'success');
+            chargerDernier();
+        }
+
+        function chargerCalcul(id) {
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+            const calcul = historique.find(c => c.id === id);
+            if (!calcul) return;
+
+            document.getElementById('reference').value = calcul.reference || '';
+            document.getElementById('marge').value = calcul.marge || 0;
+            document.getElementById('typePiece').value = calcul.type;
+            document.getElementById('alliage').value = calcul.alliage;
+            updateFields();
+
+            if (calcul.type === 'barresRect') {
+                document.getElementById('largRect').value = calcul.dimensions.larg || '';
+                document.getElementById('hautRect').value = calcul.dimensions.haut || '';
+                document.getElementById('longRect').value = calcul.dimensions.long || '';
+            } else if (calcul.type === 'barresRondes') {
+                document.getElementById('diamRond').value = calcul.dimensions.diam || '';
+                document.getElementById('longRond').value = calcul.dimensions.long || '';
+            } else if (calcul.type === 'tubes') {
+                document.getElementById('diamTubeExt').value = calcul.dimensions.diamExt || '';
+                document.getElementById('diamTubeInt').value = calcul.dimensions.diamInt || '';
+                document.getElementById('longTube').value = calcul.dimensions.long || '';
+            } else if (calcul.type === 'rondelles') {
+                document.getElementById('typeRondelle').value = calcul.dimensions.typeRondelle || 'pleine';
+                document.getElementById('diamExtRond').value = calcul.dimensions.diamExt || '';
+                document.getElementById('diamIntRond').value = calcul.dimensions.diamInt || '';
+                document.getElementById('epRond').value = calcul.dimensions.ep || '';
+                document.getElementById('qteRondelle').value = calcul.dimensions.qte || 1;
+                document.getElementById('diamIntGroup').style.display = document.getElementById('typeRondelle').value === 'ouverte' ? 'block' : 'none';
+            } else if (calcul.type === 'plaques') {
+                document.getElementById('typePlaque').value = calcul.dimensions.typePlaque || 'pleine';
+                if (calcul.dimensions.dimString) {
+                    document.getElementById('dimensionsPlaque').value = calcul.dimensions.dimString;
+                }
+                document.getElementById('diamTrouPlaque').value = calcul.dimensions.diamTrou || '';
+                document.getElementById('epPlaque').value = calcul.dimensions.ep || '';
+                document.getElementById('qtePlaque').value = calcul.dimensions.qte || 1;
+                document.getElementById('trouPlaqueGroup').style.display = document.getElementById('typePlaque').value === 'ouverte' ? 'block' : 'none';
+            }
+
+            document.querySelector('[data-tab="calcul"]').click();
+            window.scrollTo(0, 0);
+            showToast('Calcul chargé', 'info');
+        }
+
+        function supprimerCalcul(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce calcul?')) {
+                const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+                const index = historique.findIndex(c => c.id === id);
+                if (index > -1) {
+                    historique.splice(index, 1);
+                    localStorage.setItem('calculHistorique', JSON.stringify(historique));
+                    afficherHistorique();
+                    notifierAutresOnglets();
+                    showToast('Calcul supprimé', 'info');
+                }
+            }
+        }
+
+        function copierTableau() {
+            const table = document.querySelector('#resultat table');
+            if (!table) {
+                showToast('Aucun tableau à copier', 'error');
+                return;
+            }
+            const text = table.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Tableau copié au presse-papiers', 'success');
+            });
+        }
+
+        function afficherDetailsPDF() {
+            const element = document.getElementById('resultat');
+            if (!element || element.style.display === 'none') {
+                showToast('Aucun résultat à exporter', 'error');
+                return;
+            }
+            const table = element.querySelector('table');
+            if (!table) {
+                showToast('Aucun tableau à exporter', 'error');
+                return;
+            }
+            const wrapper = document.createElement('div');
+            wrapper.style.padding = '18px';
+            wrapper.style.fontFamily = 'Arial, Helvetica, sans-serif';
+
+            const calc = window.calculActuel || {};
+            const dims = calc.dimensions || {};
+
+            const header = document.createElement('div');
+            header.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:16px; border-bottom:2px solid #e0e0e0; padding-bottom:10px;">
+                    <div>
+                        <div style="font-size:18px; font-weight:700; color:#111;">Calcul tarifs - Export PDF</div>
+                        <div style="font-size:12px; color:#666; margin-top:4px;">${new Date().toLocaleString('fr-FR')}</div>
+                    </div>
+                    <div style="font-size:12px; color:#666;">Version: ${calc.type ? 'Calcul' : '—'}</div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px 16px; margin-bottom:16px; font-size:13px;">
+                    <div><strong>Référence :</strong> ${calc.reference || '—'}</div>
+                    <div><strong>Désignation :</strong> ${buildDisplayLine(calc)}</div>
+                    <div><strong>Alliage :</strong> ${calc.alliage || '—'}</div>
+                    <div><strong>Dimensions :</strong> ${formatDimensionsForType(calc.type, dims, calc) || '—'}</div>
+                </div>
+            `;
+
+            const tableClone = table.cloneNode(true);
+            tableClone.style.marginTop = '0';
+            tableClone.style.fontSize = '12px';
+            tableClone.style.boxShadow = 'none';
+            tableClone.style.border = '1px solid #e0e0e0';
+            tableClone.querySelectorAll('th').forEach(th => {
+                th.style.backgroundColor = '#f2f2f2';
+                th.style.color = '#111';
+                th.style.fontSize = '11px';
+                th.style.padding = '6px';
+            });
+            tableClone.querySelectorAll('td').forEach(td => {
+                td.style.padding = '6px';
+            });
+
+            wrapper.appendChild(header);
+            wrapper.appendChild(tableClone);
+            const opt = {
+                margin: 10,
+                filename: `Calcul_${new Date().toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+            html2pdf().set(opt).from(wrapper).save();
+            showToast('PDF généré (tableau uniquement)', 'success');
+        }
+
+        function afficherHistorique() {
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]').map(h => ({
+                ...h,
+                date: new Date(h.date)
+            }));
+
+            const searchRef = document.getElementById('searchRef').value.toLowerCase();
+            const filterType = document.getElementById('filterType').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = historique.filter(h =>
+                (!searchRef || h.reference.toLowerCase().includes(searchRef)) &&
+                (!filterType || h.type === filterType)
+            );
+
+            filtered.sort((a, b) => {
+                if (sortBy === 'date-desc') return b.date - a.date;
+                if (sortBy === 'date-asc') return a.date - b.date;
+                if (sortBy === 'prix-desc') return (b.tableData?.[0]?.prix || 0) - (a.tableData?.[0]?.prix || 0);
+                if (sortBy === 'prix-asc') return (a.tableData?.[0]?.prix || 0) - (b.tableData?.[0]?.prix || 0);
+                if (sortBy === 'ref-asc') return a.reference.localeCompare(b.reference);
+            });
+
+            const historiqueVide = document.getElementById('historique-vide');
+            const historiqueListe = document.getElementById('historique-liste');
+            const exportControls = document.getElementById('export-controls');
+
+            historiqueVide.style.display = filtered.length === 0 ? 'block' : 'none';
+            exportControls.classList.remove('show');
+            historiqueListe.innerHTML = '';
+
+            filtered.forEach(calcul => {
+                const item = document.createElement('div');
+                item.className = 'historique-item';
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; flex: 1; gap: 1cm;">
+                        <div class="checkbox-wrap">
+                            <input type="checkbox" class="checkbox-historique" data-id="${calcul.id}" onchange="document.getElementById('export-controls').classList.add('show')">
+                        </div>
+                        <div class="historique-info">
+                            <strong>${calcul.reference ? '📌 ' + calcul.reference : 'Sans référence'}</strong>
+                            <small>${buildDisplayLine(calcul)}${calcul.type !== 'global' ? ` | Marge: ${calcul.marge}%` : ''}</small>
+                            <small>🕐 ${formatTimeDiff(calcul.date)} | Prix: ${calcul.tableData?.[0]?.prix || 0} CHF | Poids: ${(calcul.tableData?.[0]?.poids || 0)}g</small>
+                        </div>
+                    </div>
+                    <div class="historique-actions">
+                        ${calcul.type !== 'global' ? `<button class="btn-small" onclick="chargerCalcul(${calcul.id})">Charger</button>` : ''}
+                        <button class="btn-small danger" onclick="supprimerCalcul(${calcul.id})">Supprimer</button>
+                    </div>
+                `;
+                historiqueListe.appendChild(item);
+            });
+
+            if (filtered.length > 0) {
+                exportControls.classList.add('show');
+            }
+        }
+
+        function selectAll() {
+            document.querySelectorAll('.checkbox-historique').forEach(cb => cb.checked = true);
+            document.getElementById('export-controls').classList.add('show');
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.checkbox-historique').forEach(cb => cb.checked = false);
+        }
+
+        function creerCalculGlobal() {
+            const checkboxes = document.querySelectorAll('.checkbox-historique:checked');
+            if (checkboxes.length === 0) {
+                showToast('Veuillez sélectionner au moins un calcul', 'error');
+                return;
+            }
+
+            const refInput = document.getElementById('globalRef');
+            const reference = (refInput?.value || '').trim();
+            if (!reference) {
+                showToast('Veuillez entrer une référence pour le calcul global', 'error');
+                return;
+            }
+
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+            const selectedItems = historique.filter(item => ids.includes(item.id));
+
+            if (selectedItems.length === 0) {
+                showToast('Aucun calcul sélectionné', 'error');
+                return;
+            }
+
+            const aggregate = {};
+            selectedItems.forEach(item => {
+                (item.tableData || []).forEach(row => {
+                    const quantite = Number(row.quantite) || 0;
+                    if (!aggregate[quantite]) {
+                        aggregate[quantite] = { quantite, prix: 0, poids: 0 };
+                    }
+                    aggregate[quantite].prix += Number(row.prix) || 0;
+                    aggregate[quantite].poids += Number(row.poids) || 0;
+                });
+            });
+
+            const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+            const tableData = Object.values(aggregate)
+                .sort((a, b) => a.quantite - b.quantite)
+                .map(row => ({
+                    quantite: row.quantite,
+                    prix: round2(row.prix),
+                    prixParPiece: row.quantite ? round2(row.prix / row.quantite) : 0,
+                    poids: round2(row.poids)
+                }));
+
+            const nouveau = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                reference,
+                type: 'global',
+                alliage: 'Multi',
+                dimensions: {},
+                dimensionsLabel: 'Multi',
+                marge: 0,
+                tableData,
+                sourceIds: ids
+            };
+
+            historique.unshift(nouveau);
+            historique.splice(50);
+            localStorage.setItem('calculHistorique', JSON.stringify(historique));
+            if (refInput) refInput.value = '';
+            notifierAutresOnglets();
+            afficherHistorique();
+            showToast('✓ Calcul global créé', 'success');
+        }
+
+        function supprimerSelection() {
+            const checkboxes = document.querySelectorAll('.checkbox-historique:checked');
+            if (checkboxes.length === 0) {
+                showToast('Aucun calcul sélectionné', 'error');
+                return;
+            }
+            if (confirm(`Êtes-vous sûr de vouloir supprimer ${checkboxes.length} calcul(s)?`)) {
+                const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+                const ids = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+                const filtered = historique.filter(item => !ids.includes(item.id));
+                localStorage.setItem('calculHistorique', JSON.stringify(filtered));
+                afficherHistorique();
+                notifierAutresOnglets();
+                showToast(`${checkboxes.length} calcul(s) supprimé(s)`, 'success');
+            }
+        }
+
+        function exporterHistoriqueExcel() {
+            const checkboxes = document.querySelectorAll('.checkbox-historique:checked');
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+            
+            if (ids.length === 0) {
+                showToast('Veuillez sélectionner au moins un calcul', 'error');
+                return;
+            }
+
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+            const selectedItems = historique.filter(item => ids.includes(item.id));
+
+            const workbook = XLSX.utils.book_new();
+
+            selectedItems.forEach((item, index) => {
+                const title = `Export - ${item.reference || `Calcul ${index + 1}`}`;
+                const meta = [
+                    ['Référence', item.reference || 'N/A', '', ''],
+                    ['Désignation', buildDisplayLine(item), '', ''],
+                    ['Marge (%)', item.marge, '', ''],
+                    ['Date', new Date(item.date).toLocaleString('fr-FR'), '', '']
+                ];
+
+                const tableHeader = ['Quantité', 'Prix Total (CHF)', 'Prix/pc (CHF)', 'Poids (g)'];
+                const tableRows = (item.tableData || []).map(row => {
+                    const qty = Number(row.quantite) || 0;
+                    const prixTotal = Number(row.prix) || 0;
+                    const prixParPiece = qty ? prixTotal / qty : 0;
+                    const poids = Number(row.poids) || 0;
+                    return [qty, prixTotal, prixParPiece, poids];
+                });
+
+                const aoa = [];
+                aoa.push([title, '', '', '']);
+                aoa.push([]);
+                meta.forEach(r => aoa.push(r));
+                aoa.push([]);
+                aoa.push(tableHeader);
+                tableRows.forEach(r => aoa.push(r));
+
+                const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+                ws['!merges'] = ws['!merges'] || [];
+                ws['!merges'].push(XLSX.utils.decode_range('A1:D1'));
+                ws['!cols'] = [ {wch:12}, {wch:18}, {wch:16}, {wch:12} ];
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell_address = { c: C, r: R };
+                        const cell_ref = XLSX.utils.encode_cell(cell_address);
+                        const cell = ws[cell_ref];
+                        if (!cell) continue;
+                        if ((C === 1 || C === 2 || C === 3) && typeof cell.v === 'number') {
+                            cell.t = 'n';
+                            if (C === 1 || C === 2) cell.z = '#,##0.00';
+                            if (C === 3) cell.z = '#,##0.00';
+                        }
+                    }
+                }
+
+                const headerRowIndex = aoa.findIndex(r => Array.isArray(r) && r[0] === 'Quantité');
+                if (headerRowIndex >= 0) {
+                    const firstDataRow = headerRowIndex + 1;
+                    const lastDataRow = firstDataRow + tableRows.length - 1;
+                    if (tableRows.length > 0) {
+                        ws['!autofilter'] = { ref: `A${headerRowIndex+1}:D${lastDataRow+1}` };
+                    }
+                }
+
+                XLSX.utils.book_append_sheet(workbook, ws, `Calcul_${index + 1}`);
+            });
+
+            const filename = `Export_Calculs_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+            showToast('Fichier Excel généré', 'success');
+        }
+
+        function exporterHistoriqueJSON() {
+            const checkboxes = document.querySelectorAll('.checkbox-historique:checked');
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+            
+            if (ids.length === 0) {
+                showToast('Veuillez sélectionner au moins un calcul', 'error');
+                return;
+            }
+
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+            const selectedItems = historique.filter(item => ids.includes(item.id));
+            const exportItems = selectedItems.map(item => ({
+                ...item,
+                designation: buildDisplayLine(item)
+            }));
+
+            const dataStr = JSON.stringify(exportItems, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Calculs_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            showToast('Fichier JSON généré', 'success');
+        }
+
+        function reinitialiserHistorique() {
+            if (confirm('⚠️ ATTENTION: Cela va supprimer TOUS les calculs sauvegardés. Êtes-vous sûr?')) {
+                localStorage.setItem('calculHistorique', '[]');
+                afficherHistorique();
+                notifierAutresOnglets();
+                showToast('Historique réinitialisé', 'success');
+            }
+        }
+
+        function chargerDernier() {
+            const historique = JSON.parse(localStorage.getItem('calculHistorique') || '[]');
+            if (historique.length > 0) {
+                chargerCalcul(historique[0].id);
+            }
+        }
+
+        function notifierAutresOnglets() {
+            localStorage.setItem('calculMaj', Date.now().toString());
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'calculMaj') afficherHistorique();
+        });
+
+        // Calculateur principal
+        function calculerDechetBarre(lgUtileXQte) {
+            const baseBarre = 1440; 
+            const dechetParBarre = 60; 
+            const nbBarres = Math.ceil(lgUtileXQte / baseBarre);
+            return nbBarres * dechetParBarre;
+        }
+
+        document.getElementById('calculateur').addEventListener('submit', function(e) {
+            e.preventDefault();
+            try {
+                const type = document.getElementById('typePiece').value;
+                const alliage = document.getElementById('alliage').value;
+                const reference = document.getElementById('reference').value || '';
+                const marge = parseFloat(document.getElementById('marge').value) || 0;
+
+                if (!type || !alliage) {
+                    showToast('Veuillez sélectionner le type et l\'alliage', 'error');
+                    return;
+                }
+
+                if (type === 'tubes' && alliage === 'PLATINE / PT801') {
+                    showToast('Le tube n\'est pas disponible en Platine', 'error');
+                    return;
+                }
+
+                if (!validateRequiredFields(type)) {
+                    showToast('Veuillez compléter les champs requis', 'error');
+                    return;
+                }
+
+                let poidsKg = 0, volumeCm3 = 0, fraisMiseAlliage = 0, fraisFacon = 0, fraisFMO = 0;
+                const densite = densites[alliage];
+                
+                if (!densite) {
+                    showToast('Alliage non trouvé', 'error');
+                    return;
+                }
+
+                // Initial basic calculations (purely mathematical, exact price logic happens inside calculatePrice below)
+                if (type === 'barresRect') {
+                    const long = parseFloat(document.getElementById('longRect').value) || 0;
+                    const larg = parseFloat(document.getElementById('largRect').value) || 0;
+                    const haut = parseFloat(document.getElementById('hautRect').value) || 0;
+                    const qte = 1;
+                    if (long <= 0 || larg <= 0 || haut <= 0) {
+                        showToast('Veuillez entrer des dimensions valides', 'error');
+                        return;
+                    }
+                    const lgUtileXQte = long * qte;
+                    const dechet = calculerDechetBarre(lgUtileXQte);
+                    const lgTotalAvecDechet = lgUtileXQte + dechet;
+                    
+                    volumeCm3 = (lgTotalAvecDechet / 10) * (larg / 10) * (haut / 10);
+                    poidsKg = (volumeCm3 * densite) / 1000;
+                    fraisMiseAlliage = Math.max(poidsKg * tarifs.barresRect.miseAlliage[alliage].kg, tarifs.barresRect.miseAlliage[alliage].min);
+                    fraisFacon = Math.max(lgTotalAvecDechet * tarifs.barresRect.facon[alliage].mm, tarifs.barresRect.facon[alliage].min);
+                    fraisFMO = tarifs.barresRect.fmo[alliage];
+                } else if (type === 'barresRondes') {
+                    const long = parseFloat(document.getElementById('longRond').value) || 0;
+                    const diam = parseFloat(document.getElementById('diamRond').value) || 0;
+                    const qte = 1;
+                    if (long <= 0 || diam <= 0) {
+                        showToast('Veuillez entrer des dimensions valides', 'error');
+                        return;
+                    }
+                    const lgUtileXQte = long * qte;
+                    const dechet = calculerDechetBarre(lgUtileXQte);
+                    const lgTotalAvecDechet = lgUtileXQte + dechet;
+                    
+                    const rayonCm = diam / 20;
+                    const sectionCm2 = Math.PI * rayonCm * rayonCm;
+                    volumeCm3 = sectionCm2 * (lgTotalAvecDechet / 10);
+                    poidsKg = (volumeCm3 * densite) / 1000;
+                    fraisMiseAlliage = Math.max(poidsKg * tarifs.barresRondes.miseAlliage[alliage].kg, tarifs.barresRondes.miseAlliage[alliage].min);
+                    let faconKg = 0;
+                    if (alliage === 'PLATINE / PT801') {
+                        faconKg = diam < 3 ? 150 : 100;
+                    } else {
+                        if (diam < 1) faconKg = 130;
+                        else if (diam <= 3) faconKg = 110;
+                        else if (diam <= 5) faconKg = 50;
+                        else faconKg = 25;
+                    }
+                    fraisFacon = poidsKg * faconKg;
+                    fraisFMO = fraisMiseAlliage < 100 ? 50 : 0;
+                } else if (type === 'tubes') {
+                    const long = parseFloat(document.getElementById('longTube').value) || 0;
+                    const diamExt = parseFloat(document.getElementById('diamTubeExt').value) || 0;
+                    const diamInt = parseFloat(document.getElementById('diamTubeInt').value) || 0;
+                    const qte = 1;
+                    if (long <= 0 || diamExt <= 0 || diamInt <= 0 || diamInt >= diamExt) {
+                        showToast('Veuillez entrer des dimensions valides', 'error');
+                        return;
+                    }
+                    const lgUtileXQte = long * qte;
+                    const dechet = calculerDechetBarre(lgUtileXQte);
+                    const lgTotalAvecDechet = lgUtileXQte + dechet;
+
+                    const rayonExtCm = diamExt / 20;
+                    const rayonIntCm = diamInt / 20;
+                    const sectionCm2 = Math.PI * (rayonExtCm * rayonExtCm - rayonIntCm * rayonIntCm);
+                    volumeCm3 = sectionCm2 * (lgTotalAvecDechet / 10);
+                    poidsKg = (volumeCm3 * densite) / 1000;
+                    fraisMiseAlliage = Math.max(poidsKg * tarifs.barresRondes.miseAlliage[alliage].kg, tarifs.barresRondes.miseAlliage[alliage].min);
+                    let faconKg = 0;
+                    if (alliage === 'PLATINE / PT801') {
+                        faconKg = diamExt < 3 ? 150 : 100;
+                    } else {
+                        if (diamExt < 1) faconKg = 130;
+                        else if (diamExt <= 3) faconKg = 110;
+                        else if (diamExt <= 5) faconKg = 50;
+                        else faconKg = 25;
+                    }
+                    const minFacon = ['OR GRIS 0125 / 5125', 'OR GRIS 0150 / 5150', 'OR GRIS 0210 / 5210'].includes(alliage) ? 200 : 150;
+                    fraisFacon = Math.max(poidsKg * faconKg, minFacon);
+                    fraisFMO = 0;
+                } else if (type === 'rondelles') {
+                    const typeR = document.getElementById('typeRondelle').value;
+                    const diamExt = parseFloat(document.getElementById('diamExtRond').value) || 0;
+                    const diamInt = typeR === 'ouverte' ? parseFloat(document.getElementById('diamIntRond').value) || 0 : 0;
+                    const ep = parseFloat(document.getElementById('epRond').value) || 0;
+                    const qte = parseFloat(document.getElementById('qteRondelle').value) || 1;
+                    const surplusRaw = parseFloat(document.getElementById('surplusRond').value);
+                    const surplus = Number.isFinite(surplusRaw) ? surplusRaw : 0;
+                    if (diamExt <= 0 || ep <= 0 || (typeR === 'ouverte' && diamInt <= 0) || (typeR === 'ouverte' && diamInt >= diamExt)) {
+                        showToast('Dimensions invalides', 'error');
+                        return;
+                    }
+                    const qteUtile = qte + surplus;
+                    
+                    const rayonExtCm = diamExt / 20;
+                    const rayonIntCm = diamInt / 20;
+                    volumeCm3 = Math.PI * (rayonExtCm * rayonExtCm - rayonIntCm * rayonIntCm) * (ep / 10);
+                    poidsKg = (volumeCm3 * densite * qteUtile) / 1000;
+                    fraisMiseAlliage = Math.max(poidsKg * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                    fraisFacon = Math.max(qteUtile * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                    fraisFMO = 0;
+                } else if (type === 'plaques') {
+                    const typeP = document.getElementById('typePlaque').value;
+                    const dimValue = document.getElementById('dimensionsPlaque').value;
+                    if (!dimValue) {
+                        showToast('Veuillez sélectionner les dimensions de la plaque', 'error');
+                        return;
+                    }
+                    const [long, larg] = dimValue.split('|').map(v => parseFloat(v) || 0);
+                    const diamTrou = typeP === 'ouverte' ? parseFloat(document.getElementById('diamTrouPlaque').value) || 0 : 0;
+                    const ep = parseFloat(document.getElementById('epPlaque').value) || 0;
+                    const qte = parseFloat(document.getElementById('qtePlaque').value) || 1;
+                    const surplusRaw = parseFloat(document.getElementById('surplusPlaque').value);
+                    const surplus = Number.isFinite(surplusRaw) ? surplusRaw : 0;
+                    if (long <= 0 || larg <= 0 || ep <= 0) {
+                        showToast('Dimensions invalides', 'error');
+                        return;
+                    }
+                    const qteUtile = qte + surplus;
+                    
+                    volumeCm3 = (long / 10) * (larg / 10) * (ep / 10);
+                    if (typeP === 'ouverte' && diamTrou > 0) {
+                        const rayonTrouCm = diamTrou / 20;
+                        volumeCm3 -= Math.PI * rayonTrouCm * rayonTrouCm * (ep / 10);
+                    }
+                    poidsKg = (volumeCm3 * densite * qteUtile) / 1000;
+                    fraisMiseAlliage = Math.max(poidsKg * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                    fraisFacon = Math.max(qteUtile * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                    fraisFMO = 0;
+                }
+
+                function calculatePrice(factor) {
+                    let poidsKgCalc = 0, fraisMiseAlliageCalc = 0, fraisFaconCalc = 0, fraisFMOCalc = 0, surtitrageCalc = 0;
+
+                    if (type === 'barresRect') {
+                        const long = parseFloat(document.getElementById('longRect').value) || 0;
+                        const larg = parseFloat(document.getElementById('largRect').value) || 0;
+                        const haut = parseFloat(document.getElementById('hautRect').value) || 0;
+                        const lgUtileXFactor = long * factor;
+                        const dechet = calculerDechetBarre(lgUtileXFactor);
+                        const lgTotalAvecDechet = lgUtileXFactor + dechet;
+                        const volumeCm3Calc = (lgTotalAvecDechet / 10) * (larg / 10) * (haut / 10);
+                        poidsKgCalc = (volumeCm3Calc * densite) / 1000;
+                        fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.barresRect.miseAlliage[alliage].kg, tarifs.barresRect.miseAlliage[alliage].min);
+                        fraisFaconCalc = Math.max(lgTotalAvecDechet * tarifs.barresRect.facon[alliage].mm, tarifs.barresRect.facon[alliage].min);
+                        fraisFMOCalc = tarifs.barresRect.fmo[alliage];
+                    } else if (type === 'barresRondes') {
+                        const long = parseFloat(document.getElementById('longRond').value) || 0;
+                        const diam = parseFloat(document.getElementById('diamRond').value) || 0;
+                        const lgUtileXFactor = long * factor;
+                        const dechet = calculerDechetBarre(lgUtileXFactor);
+                        const lgTotalAvecDechet = lgUtileXFactor + dechet;
+                        const rayonCm = diam / 20;
+                        const sectionCm2 = Math.PI * rayonCm * rayonCm;
+                        const volumeCm3Calc = sectionCm2 * (lgTotalAvecDechet / 10);
+                        poidsKgCalc = (volumeCm3Calc * densite) / 1000;
+                        fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.barresRondes.miseAlliage[alliage].kg, tarifs.barresRondes.miseAlliage[alliage].min);
+                        let faconKg = 0;
+                        if (alliage === 'PLATINE / PT801') {
+                            faconKg = diam < 3 ? 150 : 100;
+                        } else {
+                            if (diam < 1) faconKg = 130;
+                            else if (diam <= 3) faconKg = 110;
+                            else if (diam <= 5) faconKg = 50;
+                            else faconKg = 25;
+                        }
+                        fraisFaconCalc = poidsKgCalc * faconKg;
+                        fraisFMOCalc = fraisMiseAlliageCalc < 100 ? 50 : 0;
+                    } else if (type === 'tubes') {
+                        const long = parseFloat(document.getElementById('longTube').value) || 0;
+                        const diamExt = parseFloat(document.getElementById('diamTubeExt').value) || 0;
+                        const diamInt = parseFloat(document.getElementById('diamTubeInt').value) || 0;
+                        if (alliage === 'PLATINE / PT801') {
+                            return { poids: 0, prix: 0, fraisMiseAlliage: 0, fraisFacon: 0, fraisFMO: 0, surtitrage: 0, sousTotal: 0 };
+                        }
+                        const lgUtileXFactor = long * factor;
+                        const dechet = calculerDechetBarre(lgUtileXFactor);
+                        const lgTotalAvecDechet = lgUtileXFactor + dechet;
+                        const rayonExtCm = diamExt / 20;
+                        const rayonIntCm = diamInt / 20;
+                        const sectionCm2 = Math.PI * (rayonExtCm * rayonExtCm - rayonIntCm * rayonIntCm);
+                        const volumeCm3Calc = sectionCm2 * (lgTotalAvecDechet / 10);
+                        poidsKgCalc = (volumeCm3Calc * densite) / 1000;
+                        fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.barresRondes.miseAlliage[alliage].kg, tarifs.barresRondes.miseAlliage[alliage].min);
+                        let faconKg = 0;
+                        if (alliage === 'PLATINE / PT801') {
+                            faconKg = diamExt < 3 ? 150 : 100;
+                        } else {
+                            if (diamExt < 1) faconKg = 130;
+                            else if (diamExt <= 3) faconKg = 110;
+                            else if (diamExt <= 5) faconKg = 50;
+                            else faconKg = 25;
+                        }
+                        const minFacon = ['OR GRIS 0125 / 5125', 'OR GRIS 0150 / 5150', 'OR GRIS 0210 / 5210'].includes(alliage) ? 200 : 150;
+                        fraisFaconCalc = Math.max(poidsKgCalc * faconKg, minFacon);
+                        fraisFMOCalc = 0;
+                    } else if (type === 'rondelles') {
+                        const typeR = document.getElementById('typeRondelle').value;
+                        const diamExt = parseFloat(document.getElementById('diamExtRond').value) || 0;
+                        const diamInt = typeR === 'ouverte' ? parseFloat(document.getElementById('diamIntRond').value) || 0 : 0;
+                        const ep = parseFloat(document.getElementById('epRond').value) || 0;
+                        const qte = parseFloat(document.getElementById('qteRondelle').value) || 1;
+                        const surplusRaw = parseFloat(document.getElementById('surplusRond').value);
+                        const surplus = Number.isFinite(surplusRaw) ? surplusRaw : 0;
+                        const qteUtile = (qte * factor) + surplus;
+                        const rayonExtCm = diamExt / 20;
+                        const rayonIntCm = diamInt / 20;
+                        const volumeCm3Calc = Math.PI * (rayonExtCm * rayonExtCm - rayonIntCm * rayonIntCm) * (ep / 10);
+                        poidsKgCalc = (volumeCm3Calc * densite * qteUtile) / 1000;
+                        fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                        fraisFaconCalc = Math.max(qteUtile * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                        fraisFMOCalc = 0;
+                    } else if (type === 'plaques') {
+                        const typeP = document.getElementById('typePlaque').value;
+                        const dimValue = document.getElementById('dimensionsPlaque').value || '|';
+                        const [long, larg] = dimValue.split('|').map(v => parseFloat(v) || 0);
+                        const diamTrou = typeP === 'ouverte' ? parseFloat(document.getElementById('diamTrouPlaque').value) || 0 : 0;
+                        const ep = parseFloat(document.getElementById('epPlaque').value) || 0;
+                        const qte = parseFloat(document.getElementById('qtePlaque').value) || 1;
+                        const surplusRaw = parseFloat(document.getElementById('surplusPlaque').value);
+                        const surplus = Number.isFinite(surplusRaw) ? surplusRaw : 0;
+                        const qteUtile = (qte * factor) + surplus;
+                        let volumeCm3Calc = (long / 10) * (larg / 10) * (ep / 10);
+                        if (typeP === 'ouverte' && diamTrou > 0) {
+                            const rayonTrouCm = diamTrou / 20;
+                            volumeCm3Calc -= Math.PI * rayonTrouCm * rayonTrouCm * (ep / 10);
+                        }
+                        poidsKgCalc = (volumeCm3Calc * densite * qteUtile) / 1000;
+                        fraisMiseAlliageCalc = Math.max(poidsKgCalc * tarifs.rondellesPlaques.miseAlliage[alliage].kg, tarifs.rondellesPlaques.miseAlliage[alliage].min);
+                        fraisFaconCalc = Math.max(qteUtile * tarifs.rondellesPlaques.facon[alliage].piece, tarifs.rondellesPlaques.facon[alliage].min);
+                        fraisFMOCalc = 0;
+                    }
+
+                    surtitrageCalc = poidsKgCalc * (surtitrages[alliage] || 0);
+                    let prixTotalCalc = fraisMiseAlliageCalc + fraisFaconCalc + fraisFMOCalc + surtitrageCalc;
+                    prixTotalCalc = prixTotalCalc * (1 + marge / 100);
+                    return { poids: poidsKgCalc, prix: prixTotalCalc, fraisMiseAlliage: fraisMiseAlliageCalc, fraisFacon: fraisFaconCalc, fraisFMO: fraisFMOCalc, surtitrage: surtitrageCalc, sousTotal: fraisMiseAlliageCalc + fraisFaconCalc + fraisFMOCalc + surtitrageCalc };
+                }
+
+                const facteurs = [1, 3, 5, 10, 15, 20, 25, 30, 50, 100];
+                const tableData = [];
+                let tableHTML = `<strong>Tableau des prix :</strong><br><table><tr style="background-color: #f4e4bc;"><th>Quantité</th><th>Prix Total (CHF)</th><th>Prix/pc (CHF)</th><th>Poids (g)</th></tr>`;
+
+                facteurs.forEach(factor => {
+                    const calc = calculatePrice(factor);
+                    const poidsG = (calc.poids * 1000).toFixed(2);
+                    const prixCHF = parseFloat(calc.prix).toFixed(2);
+                    const prixParPiece = factor ? (parseFloat(prixCHF) / factor).toFixed(2) : '0.00';
+                    tableData.push({ quantite: factor, prix: parseFloat(prixCHF), prixParPiece: parseFloat(prixParPiece), poids: poidsG });
+                    tableHTML += `<tr><td>Pour ${factor} pièce${factor > 1 ? 's' : ''}</td><td>${prixCHF}</td><td>${prixParPiece}</td><td>${poidsG}</td></tr>`;
+                });
+                tableHTML += `</table>`;
+
+                let detailsStorage = {};
+                facteurs.forEach(factor => {
+                    const calcFactor = calculatePrice(factor);
+                    let qteUtile = factor;
+                    let volumeMM3 = 0;
+                    let unitesQte = '';
+
+                    if (type === 'barresRect') {
+                        const larg = parseFloat(document.getElementById('largRect').value) || 0;
+                        const haut = parseFloat(document.getElementById('hautRect').value) || 0;
+                        const lgUtile = parseFloat(document.getElementById('longRect').value) || 0;
+                        const lgUtileXFactor = lgUtile * factor;
+                        const dechet = calculerDechetBarre(lgUtileXFactor);
+                        qteUtile = lgUtileXFactor + dechet;
+                        volumeMM3 = larg * haut * qteUtile;
+                        unitesQte = 'mm';
+                    } else if (type === 'barresRondes') {
+                        const diam = parseFloat(document.getElementById('diamRond').value) || 0;
+                        const lgUtile = parseFloat(document.getElementById('longRond').value) || 0;
+                        const lgUtileXFactor = lgUtile * factor;
+                        const dechet = calculerDechetBarre(lgUtileXFactor);
+                        qteUtile = lgUtileXFactor + dechet;
+                        volumeMM3 = Math.PI * Math.pow(diam / 2, 2) * qteUtile;
+                        unitesQte = 'mm';
+                    } else if (type === 'tubes') {
+                        const diamExt = parseFloat(document.getElementById('diamTubeExt').value) || 0;
+                        const diamInt = parseFloat(document.getElementById('diamTubeInt').value) || 0;
+                        const lgUtile = parseFloat(document.getElementById('longTube').value) || 0;
+                        const lgUtileXFactor = lgUtile * factor;
+                        const dechet = calculerDechetBarre(lgUtileXFactor);
+                        qteUtile = lgUtileXFactor + dechet;
+                        const rayonExt = diamExt / 2;
+                        const rayonInt = diamInt / 2;
+                        const sectionMM2 = Math.PI * (rayonExt * rayonExt - rayonInt * rayonInt);
+                        volumeMM3 = sectionMM2 * qteUtile;
+                        unitesQte = 'mm';
+                    } else if (type === 'rondelles') {
+                        const qte = parseFloat(document.getElementById('qteRondelle').value) || 0;
+                        const surplusRaw = parseFloat(document.getElementById('surplusRond').value);
+                        const surplus = Number.isFinite(surplusRaw) ? surplusRaw : 0;
+                        qteUtile = (qte * factor) + surplus;
+                        const diamExt = parseFloat(document.getElementById('diamExtRond').value) || 0;
+                        const diamInt = parseFloat(document.getElementById('diamIntRond').value) || 0;
+                        const ep = parseFloat(document.getElementById('epRond').value) || 0;
+                        const rayonExt = diamExt / 2;
+                        const rayonInt = diamInt / 2;
+                        const volumeUniteMM3 = Math.PI * (rayonExt * rayonExt - rayonInt * rayonInt) * ep;
+                        volumeMM3 = volumeUniteMM3 * qteUtile;
+                        unitesQte = 'pcs';
+                    } else if (type === 'plaques') {
+                        const qte = parseFloat(document.getElementById('qtePlaque').value) || 0;
+                        const surplusRaw = parseFloat(document.getElementById('surplusPlaque').value);
+                        const surplus = Number.isFinite(surplusRaw) ? surplusRaw : 0;
+                        qteUtile = (qte * factor) + surplus;
+                        const dimValue = document.getElementById('dimensionsPlaque').value || '|';
+                        const [long, larg] = dimValue.split('|').map(v => parseFloat(v) || 0);
+                        const ep = parseFloat(document.getElementById('epPlaque').value) || 0;
+                        const volumeUniteMM3 = long * larg * ep;
+                        volumeMM3 = volumeUniteMM3 * qteUtile;
+                        unitesQte = 'pcs';
+                    }
+
+                    const prixFinal = calcFactor.prix;
+                    const margeAmount = prixFinal - calcFactor.sousTotal;
+
+                    detailsStorage[factor] = {
+                        poids: calcFactor.poids * 1000,
+                        qteUtile: qteUtile,
+                        unitesQte: unitesQte,
+                        volume: volumeMM3,
+                        fraisMiseAlliage: calcFactor.fraisMiseAlliage,
+                        fraisFacon: calcFactor.fraisFacon,
+                        fraisFMO: calcFactor.fraisFMO,
+                        surtitrage: calcFactor.surtitrage,
+                        sousTotal: calcFactor.sousTotal,
+                        margeAmount: margeAmount,
+                        prixFinal: prixFinal
+                    };
+                });
+
+                function generateDetailHTML(factor) {
+                    const detail = detailsStorage[factor];
+                    return `<div style="margin-top: 30px; padding: 20px; background: var(--bg-secondary); border-radius: 8px; border-left: 4px solid var(--accent);"><strong style="color: var(--accent); font-size: 16px;">Détail du calcul pour ${factor} PC :</strong><br><table style="margin-top: 15px;"><tr><td style="width: 50%; font-weight: 500;">Qté utilisée :</td><td style="text-align: right;">${detail.qteUtile.toFixed(2)} ${detail.unitesQte}</td></tr><tr style="background-color: var(--bg-primary);"><td style="font-weight: 500;">Volume :</td><td style="text-align: right;">${detail.volume.toFixed(0)} mm³</td></tr><tr><td style="font-weight: 500;">Poids Total :</td><td style="text-align: right;">${detail.poids.toFixed(2)} g</td></tr><tr><td colspan="2" style="padding: 10px 0;"><div style="height: 1px; background: var(--border-color);"></div></td></tr><tr style="background-color: var(--bg-primary);"><td style="font-weight: 500;">Frais de mise alliage :</td><td style="text-align: right;">${detail.fraisMiseAlliage.toFixed(2)} CHF</td></tr><tr><td style="font-weight: 500;">Frais de façon :</td><td style="text-align: right;">${detail.fraisFacon.toFixed(2)} CHF</td></tr><tr style="background-color: var(--bg-primary);"><td style="font-weight: 500;">Frais FMO :</td><td style="text-align: right;">${detail.fraisFMO.toFixed(2)} CHF</td></tr><tr><td style="font-weight: 500;">Surtitrage :</td><td style="text-align: right;">${detail.surtitrage.toFixed(2)} CHF</td></tr><tr style="background-color: var(--bg-secondary);"><td style="font-weight: 500;">Sous-total :</td><td style="text-align: right;">${detail.sousTotal.toFixed(2)} CHF</td></tr><tr style="background-color: var(--bg-primary);"><td style="font-weight: 500;">Marge (${marge}%) :</td><td style="text-align: right;">+ ${detail.margeAmount.toFixed(2)} CHF</td></tr><tr style="background-color: var(--bg-secondary);"><td style="border: 2px solid var(--accent); padding: 10px; font-weight: 600; color: var(--accent);">Prix Total pour ${factor} PC :</td><td style="border: 2px solid var(--accent); padding: 10px; text-align: right; font-weight: 600; color: var(--accent);">${detail.prixFinal.toFixed(2)} CHF</td></tr></table></div>`;
+                }
+
+                let dropdownHTML = `<div style="margin-top: 20px; margin-bottom: 10px;"><label style="font-weight: 500; margin-right: 10px;">Afficher le détail pour :</label><select id="detailSelector" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-primary); color: var(--text); font-size: 14px; cursor: pointer;">`;
+                facteurs.forEach(factor => {
+                    dropdownHTML += `<option value="${factor}">Pour ${factor} pièce${factor > 1 ? 's' : ''}</option>`;
+                });
+                dropdownHTML += `</select></div>`;
+
+                let detailHTML = dropdownHTML + generateDetailHTML(1);
+
+                let dimensionsData = {};
+                if (type === 'barresRect') {
+                    dimensionsData = { larg: parseFloat(document.getElementById('largRect')?.value) || 0, haut: parseFloat(document.getElementById('hautRect')?.value) || 0, long: parseFloat(document.getElementById('longRect')?.value) || 0 };
+                } else if (type === 'barresRondes') {
+                    dimensionsData = { diam: parseFloat(document.getElementById('diamRond')?.value) || 0, long: parseFloat(document.getElementById('longRond')?.value) || 0 };
+                } else if (type === 'tubes') {
+                    dimensionsData = { diamExt: parseFloat(document.getElementById('diamTubeExt')?.value) || 0, diamInt: parseFloat(document.getElementById('diamTubeInt')?.value) || 0, long: parseFloat(document.getElementById('longTube')?.value) || 0 };
+                } else if (type === 'rondelles') {
+                    dimensionsData = { typeRondelle: document.getElementById('typeRondelle')?.value || '', diamExt: parseFloat(document.getElementById('diamExtRond')?.value) || 0, diamInt: parseFloat(document.getElementById('diamIntRond')?.value) || 0, ep: parseFloat(document.getElementById('epRond')?.value) || 0, qte: parseFloat(document.getElementById('qteRondelle')?.value) || 0 };
+                } else if (type === 'plaques') {
+                    const dimValue = document.getElementById('dimensionsPlaque')?.value || '|';
+                    const [long, larg] = dimValue.split('|').map(v => parseFloat(v) || 0);
+                    dimensionsData = { typePlaque: document.getElementById('typePlaque')?.value || '', dimString: dimValue, long: long, larg: larg, diamTrou: parseFloat(document.getElementById('diamTrouPlaque')?.value) || 0, ep: parseFloat(document.getElementById('epPlaque')?.value) || 0, qte: parseFloat(document.getElementById('qtePlaque')?.value) || 0 };
+                }
+
+                window.calculActuel = { reference, type, alliage, dimensions: dimensionsData, marge, tableData };
+
+                const btnSauvegarder = `<div class="action-buttons" style="margin-top: 20px;"><button class="btn-action success" style="width: 100%; padding: 15px;" onclick="sauvegarderCalculActuel()">💾 Sauvegarder ce calcul (Ctrl+S)</button></div>`;
+
+                document.getElementById('resultat').innerHTML = tableHTML + detailHTML + btnSauvegarder;
+                document.getElementById('resultat').style.display = 'block';
+                
+                window.generateDetailHTML = generateDetailHTML;
+                window.detailsStorage = detailsStorage;
+                window.currentType = type;
+                window.currentMarge = marge;
+                
+                setTimeout(() => {
+                    const detailSelector = document.getElementById('detailSelector');
+                    if (detailSelector) {
+                        detailSelector.addEventListener('change', function() {
+                            const selectedFactor = parseInt(this.value);
+                            const detailContent = window.generateDetailHTML(selectedFactor);
+                            const detailContainer = document.querySelector('[style*="margin-top: 30px"]');
+                            if (detailContainer) {
+                                detailContainer.outerHTML = detailContent;
+                            }
+                        });
+                    }
+                }, 0);
+                
+                document.querySelector('[data-tab="resultats"]').click();
+            } catch (error) {
+                console.error('Erreur calcul:', error);
+                showToast('Erreur lors du calcul: ' + error.message, 'error');
+            }
+        });
+
+        // Initialisation
+        const lastType = localStorage.getItem('lastTypePiece') || '';
+        const lastAlliage = localStorage.getItem('lastAlliage') || '';
+        if (lastType) {
+            document.getElementById('typePiece').value = lastType;
+            updateFields();
+        }
+        if (lastAlliage) {
+            document.getElementById('alliage').value = lastAlliage;
+        }
+        afficherHistorique();
     </script>
 </body>
 </html>
-
-
-
